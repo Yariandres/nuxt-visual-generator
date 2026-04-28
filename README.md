@@ -74,3 +74,11 @@ bun run preview
 
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
 # nuxt-visual-generator
+
+## Visual Studio Code
+
+This repo now includes a `.vscode/` workspace config so it works out of the box in VS Code:
+
+- Run **Terminal → Run Task** and choose `dev`, `build`, or `preview`
+- Use **Run and Debug** with `Nuxt: Launch Chrome` to start the dev server and open the app in a debuggable browser
+- Install recommended extensions when prompted (Volar, Nuxt, Prettier)

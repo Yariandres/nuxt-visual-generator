@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "nuxt-ui": {
+      "source": "nuxt/ui",
+      "sourceType": "github",
+      "skillPath": "skills/nuxt-ui/SKILL.md",
+      "computedHash": "73c6af534e1efcdfac6f3ac009ad5afe5aa67e12d90c60ee80f686573967ffe6"
+    },
+    "writing": {
+      "source": "git@github.com:posva/vue-rulekit.git",
+      "sourceType": "git",
+      "skillPath": "skills/writing/SKILL.md",
+      "computedHash": "e2607975837c2a301e9386ec0d28833edba516de7291f1e49934675162347018"
+    }
+  }
+}
