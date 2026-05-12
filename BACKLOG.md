@@ -19,7 +19,6 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 - Goal: Initialize the Nuxt 3 app as the foundation for the frontend and server routes.
 - Tasks:
   - Create the Nuxt 3 project in this repository.
-  - Configure TypeScript.
   - Add base app layout and default landing/workflow route.
   - Confirm Nuxt server routes can run locally.
 - Acceptance criteria:
