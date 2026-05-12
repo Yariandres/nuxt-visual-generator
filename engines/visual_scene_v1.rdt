@@ -1,0 +1,51 @@
+{
+  "id": "visual_scene_v1",
+  "name": "Visual Scene Generator",
+  "version": "1.0.0",
+  "template": "Create a {{STYLE}} scene of {{SUBJECT}} in {{ENVIRONMENT}} with {{LIGHTING}}.",
+  "fields": [
+    {
+      "key": "STYLE",
+      "label": "Style",
+      "type": "select",
+      "required": true,
+      "options": ["photoreal", "editorial", "minimal"]
+    },
+    {
+      "key": "SUBJECT",
+      "label": "Subject",
+      "type": "text",
+      "required": true,
+      "expand": {
+        "enabled": true,
+        "promptTemplate": "Expand this subject description for premium ad visual quality: {{value}}"
+      }
+    },
+    {
+      "key": "ENVIRONMENT",
+      "label": "Environment",
+      "type": "text",
+      "required": true,
+      "expand": {
+        "enabled": true,
+        "promptTemplate": "Describe a detailed environment setting for a professional product scene: {{value}}"
+      }
+    },
+    {
+      "key": "LIGHTING",
+      "label": "Lighting",
+      "type": "select",
+      "required": true,
+      "options": ["natural", "studio", "dramatic", "soft"]
+    }
+  ],
+  "constraints": {
+    "mustPreserve": ["shape", "proportions", "labels", "branding"],
+    "allowedChanges": ["environment", "lighting", "composition"],
+    "qualityRules": ["realistic scale", "no duplication", "no distortion"]
+  },
+  "output": {
+    "type": "image",
+    "defaultAspectRatio": "16:9"
+  }
+}

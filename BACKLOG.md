@@ -64,7 +64,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-004: Establish Project Structure
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `0.5 day`
 - Goal: Create a maintainable folder structure for app, server, shared types, presets, and adapters.
 - Tasks:
