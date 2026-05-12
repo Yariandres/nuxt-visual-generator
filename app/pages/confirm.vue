@@ -4,10 +4,15 @@ definePageMeta({
 })
 
 const user = useSupabaseUser()
+const redirectInfo = useSupabaseCookieRedirect()
 
 watch(user, () => {
   if (user.value) {
-    navigateTo('/generate')
+    // Get redirect path, and clear it from the cookie
+    const path =redirectInfo.pluck();
+
+    // Redirect to the saved path, or fallback to home
+    return navigateTo(path || '/generate') 
   }
 }, { immediate: true })
 </script>

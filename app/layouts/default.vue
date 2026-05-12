@@ -1,3 +1,12 @@
+<script setup lang="ts">
+const supabase = useSupabaseClient()
+
+async function handleSignOut() {
+  await supabase.auth.signOut()
+  navigateTo('/login')
+}
+</script>
+
 <template>
   <div class="flex h-dvh flex-col bg-default">
     <header class="flex h-10 shrink-0 items-center justify-between border-b border-default px-4">
@@ -9,6 +18,13 @@
       <div class="flex items-center gap-3">
         <span class="text-sm text-muted">0 credits</span>
         <UColorModeButton size="xs" />
+        <UButton
+          icon="i-lucide-log-out"
+          size="xs"
+          color="neutral"
+          variant="ghost"
+          @click="handleSignOut"
+        />
       </div>
     </header>
 
