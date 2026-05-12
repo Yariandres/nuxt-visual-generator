@@ -332,6 +332,38 @@ Implement storage through an adapter interface so we can swap to AWS S3 later wi
 - Multi-user workspaces
 - Seat management
 
+## 16.1) Authentication and Route Access (V1)
+
+### Auth Method
+- Email + password via Supabase Auth
+- Session management through `@nuxtjs/supabase` module (cookie-based SSR sessions, PKCE flow)
+
+### Page Categories
+
+| Category | Layout | Auth Required | Pages |
+|---|---|---|---|
+| Public | Marketing shell (logo, nav, sign-in CTA, footer) | No | `/`, `/blog`, `/contact`, `/privacy` |
+| Auth | Centered card, no chrome | No | `/login`, `/signup`, `/confirm`, `/forgot-password` |
+| Protected | Authenticated workspace shell | Yes | `/generate`, `/projects`, `/settings` |
+
+### Auth Pages
+- `/login` — email/password sign-in
+- `/signup` — email/password registration
+- `/confirm` — Supabase callback handler (session confirmation after email verification or OAuth redirect)
+- `/forgot-password` — password reset request
+
+### Public Pages (V1 Placeholders)
+- `/` — public landing page
+- `/blog` — placeholder
+- `/contact` — placeholder
+- `/privacy` — placeholder
+
+### Route Protection
+- Unauthenticated users accessing protected routes are redirected to `/login`
+- Public and auth pages are accessible without authentication
+- Session is restored automatically on page refresh via SSR cookies
+- Authenticated users on auth pages (login, signup) are redirected to `/generate`
+
 ## 17) Billing System
 
 ### Model

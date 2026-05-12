@@ -12,6 +12,15 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@nuxt/image',
     '@nuxt/ui',
-    '@pinia/nuxt'
-  ]
+    '@pinia/nuxt',
+    '@nuxtjs/supabase',
+  ],
+
+  supabase: {
+    redirectOptions: {
+      login: '/login',
+      callback: '/confirm',
+      exclude: ['/', '/blog', '/contact', '/privacy', '/signup', '/forgot-password'],
+    },
+  },
 })

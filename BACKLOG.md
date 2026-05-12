@@ -101,17 +101,30 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 
 - Priority: `P0`
 - Status: `Todo`
-- Estimate: `1.5-2.5 days`
-- Goal: Support the V1 single-user-per-account model.
+- Estimate: `2-3 days`
+- Goal: Support the V1 single-user-per-account model with email/password auth, route protection, and layout switching.
 - Tasks:
-  - Add sign-in, sign-out, and session restoration flow.
-  - Protect generator/project routes behind authentication.
-  - Add basic authenticated user profile handling.
+  - Install and configure `@nuxtjs/supabase` module with redirect options.
+  - Create auth layout (`auth.vue`) for login/signup pages.
+  - Create public layout (`public.vue`) for marketing/public pages.
+  - Move generator workspace from `/` to `/generate` route.
+  - Add login page (`/login`) with email/password sign-in using `UAuthForm`.
+  - Add signup page (`/signup`) with email/password registration.
+  - Add confirm page (`/confirm`) for Supabase callback session handling.
+  - Add forgot-password page (`/forgot-password`) for password reset requests.
+  - Add public landing page placeholder at `/`.
+  - Add placeholder public pages: `/blog`, `/contact`, `/privacy`.
+  - Configure route protection: public and auth pages excluded from redirect, protected routes require authentication.
   - Ensure backend routes require a valid user where needed.
 - Acceptance criteria:
+  - Users can sign up with email and password.
   - Users can sign in and sign out.
-  - App restores sessions after refresh.
-  - Unauthenticated users cannot access project-specific data.
+  - App restores sessions after refresh via SSR cookies.
+  - Unauthenticated users are redirected to `/login` when accessing protected routes.
+  - Public pages are accessible without authentication.
+  - Auth pages use the centered card layout.
+  - Protected pages use the workspace shell layout.
+  - Authenticated users on `/login` or `/signup` are redirected to `/generate`.
 - Dependencies: BL-005.
 
 ### BL-007: Define Database Schema
