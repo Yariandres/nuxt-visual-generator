@@ -14,7 +14,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-001: Create Nuxt 3 Application Baseline
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `0.5-1 day`
 - Goal: Initialize the Nuxt 3 app as the foundation for the frontend and server routes.
 - Tasks:
@@ -30,7 +30,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-002: Add Nuxt UI and Styling Baseline
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `0.5-1 day`
 - Goal: Establish the UI component system for the V1 workflow.
 - Tasks:
@@ -47,7 +47,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-003: Configure Runtime Environment
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `0.5 day`
 - Goal: Define the runtime configuration needed by Supabase and AI providers.
 - Tasks:
@@ -83,7 +83,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-005: Set Up Supabase Integration
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `1-1.5 days`
 - Goal: Connect Nuxt to Supabase for Auth, Postgres, and Storage.
 - Tasks:
@@ -100,7 +100,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-006: Implement Auth Baseline
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `2-3 days`
 - Goal: Support the V1 single-user-per-account model with email/password auth, route protection, and layout switching.
 - Tasks:

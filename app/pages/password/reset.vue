@@ -7,15 +7,9 @@ definePageMeta({
 })
 
 const supabase = useSupabaseClient()
-const user = useSupabaseUser()
 const loading = ref(false)
 const errorMessage = ref('')
-
-watch(user, () => {
-  if (user.value) {
-    navigateTo('/generate')
-  }
-}, { immediate: true })
+const success = ref(false)
 
 const fields: AuthFormField[] = [
   {
@@ -25,18 +19,10 @@ const fields: AuthFormField[] = [
     placeholder: 'you@example.com',
     required: true,
   },
-  {
-    name: 'password',
-    label: 'Password',
-    type: 'password',
-    placeholder: 'Enter your password',
-    required: true,
-  },
 ]
 
 const schema = z.object({
   email: z.email('Please enter a valid email'),
-  password: z.string().min(1, 'Password is required'),
 })
 
 type Schema = z.output<typeof schema>
@@ -45,13 +31,15 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   loading.value = true
   errorMessage.value = ''
 
-  const { error } = await supabase.auth.signInWithPassword({
-    email: event.data.email,
-    password: event.data.password,
+  const { error } = await supabase.auth.resetPasswordForEmail(event.data.email, {
+    redirectTo: `${window.location.origin}/confirm`,
   })
 
   if (error) {
     errorMessage.value = error.message
+  }
+  else {
+    success.value = true
   }
 
   loading.value = false
@@ -60,20 +48,26 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
 <template>
   <UPageCard>
+    <template v-if="success">
+      <div class="flex flex-col items-center gap-3 py-8 text-center">
+        <UIcon name="i-lucide-mail-check" class="size-10 text-primary" />
+        <h2 class="text-lg font-semibold text-highlighted">Check your email</h2>
+        <p class="max-w-xs text-sm text-muted">
+          If an account exists with that email, we sent a password reset link.
+        </p>
+        <UButton label="Back to sign in" to="/login" color="neutral" variant="outline" class="mt-2" />
+      </div>
+    </template>
+
     <UAuthForm
+      v-else
       :schema="schema"
       :fields="fields"
-      title="Welcome back"
-      description="Sign in to your Onward account."
-      :submit="{ label: 'Sign in', loading, block: true }"
+      title="Reset your password"
+      description="Enter your email and we'll send you a reset link."
+      :submit="{ label: 'Send reset link', loading, block: true }"
       @submit="onSubmit"
     >
-      <template #password-hint>
-        <NuxtLink to="/password/reset" class="text-sm font-medium text-primary">
-          Forgot password?
-        </NuxtLink>
-      </template>
-
       <template v-if="errorMessage" #validation>
         <UAlert
           color="error"
@@ -84,8 +78,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
       <template #footer>
         <span class="text-sm text-muted">
-          Don't have an account?
-          <NuxtLink to="/signup" class="font-medium text-primary">Sign up</NuxtLink>
+          Remember your password?
+          <NuxtLink to="/login" class="font-medium text-primary">Sign in</NuxtLink>
         </span>
       </template>
     </UAuthForm>
