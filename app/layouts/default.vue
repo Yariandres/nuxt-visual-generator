@@ -1,6 +1,3 @@
-<script setup lang="ts">
-</script>
-
 <template>
   <div class="flex h-dvh flex-col bg-default">
     <header class="flex h-10 shrink-0 items-center justify-between border-b border-default px-4">
