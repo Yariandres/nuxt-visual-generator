@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // `directUrl` is deprecated in favor of `prisma.config.ts` (see https://pris.ly/d/config-datasource),
+  // but Prisma 6.19.x's prisma.config.ts datasource block does not yet honor `directUrl`. Keeping it here
+  // until v7 (or the v6 line) ships a working replacement, otherwise `migrate` routes through the pooler
+  // and hangs. Revisit when upgrading Prisma.
+  directUrl = env("DIRECT_URL")
+}
+
+enum GenerationStatus {
+  pending
+  succeeded
+  failed
+}
+
+enum UsageActionType {
+  expand
+  generate
+}
+
+model Profile {
+  id          String   @id @db.Uuid
+  displayName String?  @map("display_name")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  projects    Project[]
+  generations Generation[]
+  usageEvents UsageEvent[]
+
+  @@map("profiles")
+}
+
+model Preset {
+  id         String   @id @default(cuid())
+  slug       String
+  name       String
+  version    String
+  definition Json     @db.JsonB
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  projects    Project[]
+  generations Generation[]
+
+  @@unique([slug, version])
+  @@map("presets")
+}
+
+model Project {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id") @db.Uuid
+  presetId      String   @map("preset_id")
+  presetVersion String   @map("preset_version")
+  name          String?
+  inputs        Json     @db.JsonB
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user        Profile      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  preset      Preset       @relation(fields: [presetId], references: [id], onDelete: Restrict)
+  generations Generation[]
+  usageEvents UsageEvent[]
+
+  @@index([userId])
+  @@index([presetId])
+  @@map("projects")
+}
+
+model Generation {
+  id               String           @id @default(cuid())
+  userId           String           @map("user_id") @db.Uuid
+  projectId        String?          @map("project_id")
+  presetId         String           @map("preset_id")
+  presetVersion    String           @map("preset_version")
+  finalPrompt      String           @map("final_prompt")
+  provider         String
+  model            String
+  status           GenerationStatus @default(pending)
+  errorMessage     String?          @map("error_message")
+  bucket           String?
+  objectPath       String?          @map("object_path")
+  mimeType         String?          @map("mime_type")
+  width            Int?
+  height           Int?
+  fileSize         Int?             @map("file_size")
+  checksum         String?
+  providerMetadata Json?            @map("provider_metadata") @db.JsonB
+  createdAt        DateTime         @default(now()) @map("created_at")
+  completedAt     DateTime?         @map("completed_at")
+
+  user        Profile      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project     Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  preset      Preset       @relation(fields: [presetId], references: [id], onDelete: Restrict)
+  usageEvents UsageEvent[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([projectId, createdAt(sort: Desc)])
+  @@map("generations")
+}
+
+model UsageEvent {
+  id                 String          @id @default(cuid())
+  userId             String          @map("user_id") @db.Uuid
+  projectId          String?         @map("project_id")
+  generationId       String?         @map("generation_id")
+  actionType         UsageActionType @map("action_type")
+  provider           String
+  model              String
+  estimatedCostCents Int?            @map("estimated_cost_cents")
+  succeeded          Boolean         @default(true)
+  metadata           Json?           @db.JsonB
+  createdAt          DateTime        @default(now()) @map("created_at")
+
+  user       Profile     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project    Project?    @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  generation Generation? @relation(fields: [generationId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([actionType, createdAt(sort: Desc)])
+  @@map("usage_events")
+}
