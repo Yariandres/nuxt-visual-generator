@@ -130,7 +130,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-007: Define Database Schema
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `1.5-2.5 days`
 - Goal: Create the V1 relational data model.
 - Tasks:
