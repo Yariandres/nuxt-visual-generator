@@ -7,9 +7,13 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
+    "postinstall": "nuxt prepare && prisma generate",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:studio": "prisma studio",
+    "db:reset": "prisma migrate reset",
     "prepare": "husky"
   },
   "dependencies": {
@@ -18,6 +22,7 @@
     "@nuxt/ui": "^4.7.0",
     "@nuxtjs/supabase": "2.0.6",
     "@pinia/nuxt": "0.11.3",
+    "@prisma/client": "^6.2.1",
     "eslint": "^10.2.1",
     "nuxt": "^4.4.2",
     "pinia": "^3.0.4",
@@ -27,6 +32,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "husky": "^9.1.7"
+    "husky": "^9.1.7",
+    "prisma": "^6.2.1"
   }
 }
