@@ -149,7 +149,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-008: Add Row Level Security Policies
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `1-2 days`
 - Goal: Enforce user-scoped access to projects, generations, usage events, and private assets.
 - Tasks:
