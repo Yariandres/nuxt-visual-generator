@@ -186,7 +186,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-010: Define `.rdt` Preset Types and Validation
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `1.5-2.5 days`
 - Goal: Formalize the preset schema used to render UI and assemble prompts.
 - Tasks:
