@@ -166,7 +166,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-009: Configure Generated Asset Storage
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `1-1.5 days`
 - Goal: Store generated images in Supabase Storage with private access by default.
 - Tasks:
