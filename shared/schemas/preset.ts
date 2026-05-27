@@ -140,3 +140,13 @@ export function validatePreset(input: unknown): PresetValidationResult {
   }))
   return { ok: false, errors }
 }
+
+export interface PresetSummary {
+  id: string
+  name: string
+  version: string
+}
+
+export function presetSummary(preset: Preset): PresetSummary {
+  return { id: preset.id, name: preset.name, version: preset.version }
+}
