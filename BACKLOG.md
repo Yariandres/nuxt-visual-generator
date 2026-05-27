@@ -204,7 +204,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-011: Add Local Development Preset Loader
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `1-1.5 days`
 - Goal: Load `.rdt` preset files from the local filesystem during development.
 - Tasks:
