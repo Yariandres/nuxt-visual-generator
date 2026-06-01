@@ -221,7 +221,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-012: Implement Preset API Routes
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `1-1.5 days`
 - Goal: Expose backend routes for preset discovery and loading.
 - Tasks:
