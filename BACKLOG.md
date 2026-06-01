@@ -258,7 +258,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-014: Build Preset Selector
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `0.5-1 day`
 - Goal: Let authenticated users select a generation preset.
 - Tasks:
