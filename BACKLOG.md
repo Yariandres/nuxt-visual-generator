@@ -568,7 +568,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-031: Implement Usage Event Service
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `1-1.5 days`
 - Goal: Track usage for future billing and analytics.
 - Tasks:
