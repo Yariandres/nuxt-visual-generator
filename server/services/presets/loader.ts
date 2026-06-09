@@ -8,8 +8,10 @@ import {
   type PresetValidationError,
 } from '#shared/schemas/preset'
 
-// V1 dev-only: reads from the repo's `engines/` dir at runtime. Will be
-// replaced by a DB-backed source in BL-013; do not rely on this in prod.
+// V1 dev-only: reads from the repo's `engines/` dir at runtime. The
+// DB-backed `Preset` model (slug + version, JsonB definition) is the
+// production source of truth; swap this loader to read from there before
+// shipping. Do not rely on filesystem loading in prod.
 const ENGINES_DIR = resolve(process.cwd(), 'engines')
 const PRESET_EXT = '.rdt'
 

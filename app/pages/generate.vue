@@ -1,6 +1,33 @@
 <script setup lang="ts">
+import { fetchPreset } from '~/api/presets'
+
 definePageMeta({
   layout: 'default',
+})
+
+const {
+  selectedPresetId,
+  selectedPreset,
+  inputs,
+  setPreset,
+} = useWorkflowState()
+
+const presetDetailError = ref<string | null>(null)
+
+watch(selectedPresetId, async (id) => {
+  presetDetailError.value = null
+  if (!id) {
+    setPreset(null)
+    return
+  }
+  try {
+    const preset = await fetchPreset(id)
+    setPreset(preset)
+  } catch (err) {
+    setPreset(null)
+    presetDetailError.value
+      = (err as { statusMessage?: string }).statusMessage ?? 'Failed to load preset detail.'
+  }
 })
 </script>
 
@@ -11,12 +38,7 @@ definePageMeta({
       <!-- Presets section -->
       <section class="flex flex-col gap-2 p-3">
         <h2 class="text-[10px] font-black tracking-wide text-dimmed uppercase">Presets</h2>
-        <UInput icon="i-lucide-search" placeholder="Search..." size="sm" />
-        <UiEmptyState
-          title="No presets loaded"
-          description="Presets will appear here once the backend is connected."
-          icon="i-lucide-layers"
-        />
+        <FeaturesPresetsSelector v-model="selectedPresetId" />
       </section>
 
       <USeparator />
@@ -24,14 +46,29 @@ definePageMeta({
       <!-- Input section -->
       <section class="flex flex-col gap-2 p-3">
         <h2 class="text-[10px] font-black tracking-wide text-dimmed uppercase">Input</h2>
-        <div class="grid grid-cols-3 gap-2">
-          <div
-            v-for="i in 3"
-            :key="i"
-            class="flex aspect-square items-center justify-center rounded-md border border-dashed border-muted bg-elevated"
-          >
-            <UIcon name="i-lucide-image-plus" class="size-5 text-dimmed" />
+        <UiEmptyState
+          v-if="!selectedPresetId"
+          title="Pick a preset"
+          description="Choose a preset on the left to start configuring inputs."
+          icon="i-lucide-mouse-pointer-click"
+        />
+        <UiErrorState
+          v-else-if="presetDetailError"
+          title="Couldn't load preset"
+          :message="presetDetailError"
+        />
+        <UiLoadingState v-else-if="!selectedPreset" label="Loading preset…" />
+        <div v-else class="flex flex-col gap-3">
+          <div class="rounded-md border border-default bg-elevated p-3">
+            <div class="text-sm font-bold text-highlighted">{{ selectedPreset.name }}</div>
+            <div class="text-xs text-muted">
+              v{{ selectedPreset.version }} · Fields ({{ selectedPreset.fields.length }})
+            </div>
           </div>
+          <FeaturesPresetsFieldsForm
+            v-model="inputs"
+            :preset="selectedPreset"
+          />
         </div>
       </section>
 

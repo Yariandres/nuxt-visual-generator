@@ -20,6 +20,7 @@ const textFieldSchema = z.object({
   label: z.string().min(1),
   type: z.literal('text'),
   required: z.boolean(),
+  default: z.string().optional(),
   expand: expandConfigSchema.optional(),
 })
 
@@ -34,6 +35,7 @@ const selectFieldSchema = z
     options: z
       .array(z.string().min(1))
       .min(1, 'select fields require at least one non-empty option'),
+    default: z.string().optional(),
   })
   .strict()
 
@@ -97,6 +99,13 @@ export const presetSchema = z
           code: z.ZodIssueCode.custom,
           path: ['fields', i, 'key'],
           message: `field "${f.key}" is declared but never referenced as {{${f.key}}} in template`,
+        })
+      }
+      if (f.type === 'select' && f.default !== undefined && !f.options.includes(f.default)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['fields', i, 'default'],
+          message: `default "${f.default}" must be one of field options`,
         })
       }
     })
