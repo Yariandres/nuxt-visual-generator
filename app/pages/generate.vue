@@ -9,8 +9,16 @@ const {
   selectedPresetId,
   selectedPreset,
   inputs,
+  visibleErrors,
+  generateStatus,
   setPreset,
+  attemptSubmit,
 } = useWorkflowState()
+
+function handleGenerate() {
+  if (!attemptSubmit()) return
+  // BL-025 will call POST /api/generate here.
+}
 
 const presetDetailError = ref<string | null>(null)
 
@@ -68,6 +76,7 @@ watch(selectedPresetId, async (id) => {
           <FeaturesPresetsFieldsForm
             v-model="inputs"
             :preset="selectedPreset"
+            :errors="visibleErrors"
           />
         </div>
       </section>
@@ -142,7 +151,9 @@ watch(selectedPresetId, async (id) => {
           icon="i-lucide-sparkles"
           size="lg"
           block
-          disabled
+          :disabled="!selectedPreset || generateStatus === 'pending'"
+          :loading="generateStatus === 'pending'"
+          @click="handleGenerate"
         >
           <template #trailing>
             <USeparator orientation="vertical" class="h-4" />

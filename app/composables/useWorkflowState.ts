@@ -21,6 +21,24 @@ export function useWorkflowState() {
   const generateStatus = useState<GenerateStatus>('workflow:generateStatus', () => 'idle')
   const generateError = useState<string | null>('workflow:generateError', () => null)
   const recentOutputs = useState<GeneratedOutput[]>('workflow:recentOutputs', () => [])
+  const attemptedSubmit = useState<boolean>('workflow:attemptedSubmit', () => false)
+
+  const validationErrors = computed<Record<string, string>>(() => {
+    const preset = selectedPreset.value
+    if (!preset) return {}
+    const errors: Record<string, string> = {}
+    for (const field of preset.fields) {
+      if (!field.required) continue
+      const value = inputs.value[field.key]
+      if (value === undefined || value.trim() === '') {
+        errors[field.key] = `${field.label} is required`
+      }
+    }
+    return errors
+  })
+
+  const isValid = computed(() => Object.keys(validationErrors.value).length === 0)
+  const visibleErrors = computed(() => (attemptedSubmit.value ? validationErrors.value : {}))
 
   function seedInputs(preset: Preset): Record<string, string> {
     const seeded: Record<string, string> = {}
@@ -39,6 +57,12 @@ export function useWorkflowState() {
     generateStatus.value = 'idle'
     generateError.value = null
     recentOutputs.value = []
+    attemptedSubmit.value = false
+  }
+
+  function attemptSubmit(): boolean {
+    attemptedSubmit.value = true
+    return isValid.value
   }
 
   function setInput(key: string, value: string) {
@@ -66,10 +90,15 @@ export function useWorkflowState() {
     generateStatus,
     generateError,
     recentOutputs,
+    validationErrors,
+    visibleErrors,
+    isValid,
+    attemptedSubmit,
     setPreset,
     setInput,
     setExpandStatus,
     setGenerateStatus,
     addRecentOutput,
+    attemptSubmit,
   }
 }

@@ -4,6 +4,7 @@ import type { Preset } from '#shared/schemas/preset'
 defineProps<{
   preset: Preset
   modelValue: Record<string, string>
+  errors?: Record<string, string>
 }>()
 
 const emit = defineEmits<{
@@ -44,6 +45,9 @@ function update(current: Record<string, string>, key: string, value: string) {
         :model-value="modelValue[field.key] ?? ''"
         placeholder="Select"
         size="sm"
+        :color="errors?.[field.key] ? 'error' : undefined"
+        :aria-invalid="Boolean(errors?.[field.key])"
+        :aria-describedby="errors?.[field.key] ? `field-${field.key}-error` : undefined"
         @update:model-value="(v: string) => update(modelValue, field.key, v)"
       />
       <UInput
@@ -52,8 +56,18 @@ function update(current: Record<string, string>, key: string, value: string) {
         :model-value="modelValue[field.key] ?? ''"
         :placeholder="`Enter ${field.label.toLowerCase()}`"
         size="sm"
+        :color="errors?.[field.key] ? 'error' : undefined"
+        :aria-invalid="Boolean(errors?.[field.key])"
+        :aria-describedby="errors?.[field.key] ? `field-${field.key}-error` : undefined"
         @update:model-value="(v: string | number) => update(modelValue, field.key, String(v))"
       />
+      <p
+        v-if="errors?.[field.key]"
+        :id="`field-${field.key}-error`"
+        class="text-xs text-error"
+      >
+        {{ errors[field.key] }}
+      </p>
     </div>
   </div>
 </template>
