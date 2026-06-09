@@ -365,7 +365,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-020: Implement `POST /api/expand`
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `1-1.5 days`
 - Goal: Provide backend-controlled field-level text expansion.
 - Tasks:
