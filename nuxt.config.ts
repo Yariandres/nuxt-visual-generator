@@ -8,6 +8,13 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  // Defaults are read at build time; the real values come from `NUXT_*` env vars
+  // at runtime. Server-only by design — no `public` block for AI keys.
+  runtimeConfig: {
+    openaiApiKey: '',
+    openaiModel: 'gpt-4o-mini',
+  },
+
   modules: [
     '@nuxt/eslint',
     '@nuxt/image',
