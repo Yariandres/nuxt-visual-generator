@@ -329,7 +329,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-018: Implement Prompt Assembly Engine
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `1-1.5 days`
 - Goal: Build final prompts from preset templates, user inputs, and locked constraints.
 - Tasks:
