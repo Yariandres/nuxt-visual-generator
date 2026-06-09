@@ -311,7 +311,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-017: Add Client-Side Required Field Validation
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `0.5-1 day`
 - Goal: Prevent obvious incomplete generation requests before calling the backend.
 - Tasks:
