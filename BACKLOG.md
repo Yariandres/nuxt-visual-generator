@@ -347,7 +347,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-019: Add OpenAI Text Expansion Adapter
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `1.5-2 days`
 - Goal: Expand individual text field values using a text model without changing the rest of the form.
 - Tasks:
