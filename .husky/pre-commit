@@ -1,1 +1,5 @@
-pnpm lint
+#!/usr/bin/env sh
+# Cursor/IDE git often invokes pnpm 11 from ~/.local/share/pnpm while the terminal
+# uses Homebrew pnpm 10 — v11 runs a lockfile check before every command and fails
+# without a TTY. corepack + packageManager keeps the hook on the project version.
+corepack pnpm lint
