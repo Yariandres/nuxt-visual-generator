@@ -239,7 +239,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-013: Add Preset Persistence Strategy
 
 - Priority: `P1`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `0.5-1 day`
 - Goal: Prepare the transition from development filesystem presets to backend-managed preset records.
 - Tasks:
@@ -275,7 +275,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-015: Render Dynamic Preset Form
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `1.5-2 days`
 - Goal: Render user inputs from preset field definitions.
 - Tasks:
@@ -293,7 +293,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-016: Add Frontend Workflow State
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `1-1.5 days`
 - Goal: Manage current preset, input values, generation status, and recent outputs.
 - Tasks:
