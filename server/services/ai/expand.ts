@@ -72,8 +72,8 @@ export async function expandField(
     return {
       ok: true,
       text: result.text,
-      provider: result.provider,
-      model: result.model,
+      provider: result.meta.provider,
+      model: result.meta.model,
       usage: result.usage,
     }
   } catch (err) {

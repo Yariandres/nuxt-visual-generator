@@ -4,6 +4,9 @@ import type {
   TextExpansionRequest,
   TextExpansionResponse,
 } from './types'
+import { ProviderError, normalizeProviderError } from './errors'
+
+const PROVIDER = 'openai'
 
 const VALUE_PLACEHOLDER = '{{value}}'
 const DEFAULT_MODEL = 'gpt-4o-mini'
@@ -42,30 +45,43 @@ export function createOpenAITextExpansionAdapter(
         () => req.value,
       )
 
-      const res = await $fetch<ChatCompletionResponse>('/chat/completions', {
-        baseURL: baseUrl,
-        method: 'POST',
-        headers: { Authorization: `Bearer ${opts.apiKey}` },
-        body: {
-          model,
-          messages: [
-            { role: 'system', content: buildSystemMessage(req.constraints) },
-            { role: 'user', content: userPrompt },
-          ],
-          temperature: 0.7,
-        },
-        timeout: timeoutMs,
-      })
+      const startedAt = Date.now()
+      let res: ChatCompletionResponse
+      try {
+        res = await $fetch<ChatCompletionResponse>('/chat/completions', {
+          baseURL: baseUrl,
+          method: 'POST',
+          headers: { Authorization: `Bearer ${opts.apiKey}` },
+          body: {
+            model,
+            messages: [
+              { role: 'system', content: buildSystemMessage(req.constraints) },
+              { role: 'user', content: userPrompt },
+            ],
+            temperature: 0.7,
+          },
+          timeout: timeoutMs,
+        })
+      } catch (err) {
+        throw normalizeProviderError(err, PROVIDER)
+      }
 
       const text = res.choices?.[0]?.message?.content?.trim() ?? ''
       if (text === '') {
-        throw new Error('OpenAI returned an empty completion.')
+        throw new ProviderError({
+          provider: PROVIDER,
+          category: 'transient',
+          message: 'OpenAI returned an empty completion.',
+        })
       }
 
       return {
         text,
-        provider: 'openai',
-        model: res.model ?? model,
+        meta: {
+          provider: PROVIDER,
+          model: res.model ?? model,
+          latencyMs: Date.now() - startedAt,
+        },
         usage: {
           promptTokens: res.usage?.prompt_tokens,
           completionTokens: res.usage?.completion_tokens,
