@@ -18,6 +18,7 @@ export function useWorkflowState() {
   const selectedPreset = useState<Preset | null>('workflow:selectedPreset', () => null)
   const inputs = useState<Record<string, string>>('workflow:inputs', () => ({}))
   const expandStatus = useState<Record<string, FieldStatus>>('workflow:expandStatus', () => ({}))
+  const expandErrors = useState<Record<string, string>>('workflow:expandErrors', () => ({}))
   const generateStatus = useState<GenerateStatus>('workflow:generateStatus', () => 'idle')
   const generateError = useState<string | null>('workflow:generateError', () => null)
   const recentOutputs = useState<GeneratedOutput[]>('workflow:recentOutputs', () => [])
@@ -54,6 +55,7 @@ export function useWorkflowState() {
     selectedPreset.value = preset
     inputs.value = preset ? seedInputs(preset) : {}
     expandStatus.value = {}
+    expandErrors.value = {}
     generateStatus.value = 'idle'
     generateError.value = null
     recentOutputs.value = []
@@ -69,8 +71,9 @@ export function useWorkflowState() {
     inputs.value = { ...inputs.value, [key]: value }
   }
 
-  function setExpandStatus(key: string, status: FieldStatus) {
+  function setExpandStatus(key: string, status: FieldStatus, message: string | null = null) {
     expandStatus.value = { ...expandStatus.value, [key]: status }
+    expandErrors.value = { ...expandErrors.value, [key]: status === 'error' ? (message ?? '') : '' }
   }
 
   function setGenerateStatus(status: GenerateStatus, error: string | null = null) {
@@ -87,6 +90,7 @@ export function useWorkflowState() {
     selectedPreset,
     inputs,
     expandStatus,
+    expandErrors,
     generateStatus,
     generateError,
     recentOutputs,
