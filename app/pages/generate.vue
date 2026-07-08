@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { fetchPreset } from '~/api/presets'
+import { expandField } from '~/api/expand'
 
 definePageMeta({
   layout: 'default',
@@ -10,14 +11,48 @@ const {
   selectedPreset,
   inputs,
   visibleErrors,
+  expandStatus,
+  expandErrors,
   generateStatus,
   setPreset,
+  setInput,
+  setExpandStatus,
   attemptSubmit,
 } = useWorkflowState()
 
 function handleGenerate() {
   if (!attemptSubmit()) return
   // BL-025 will call POST /api/generate here.
+}
+
+const EXPAND_ERROR_MESSAGES: Record<string, string> = {
+  field_not_found: 'This field can no longer be expanded.',
+  wrong_field_type: 'Only text fields can be expanded.',
+  field_not_expandable: 'This field does not support AI expansion.',
+  provider_failure: 'Expansion failed. Please try again.',
+  preset_not_found: 'Preset is no longer available.',
+  invalid_preset: 'Preset is misconfigured.',
+  openai_not_configured: 'AI expansion is not configured.',
+}
+
+async function handleExpand(key: string) {
+  const preset = selectedPreset.value
+  const value = inputs.value[key]?.trim()
+  if (!preset || !value) return
+
+  setExpandStatus(key, 'pending')
+  try {
+    const result = await expandField(preset.id, key, value)
+    setInput(key, result.text)
+    setExpandStatus(key, 'idle')
+  } catch (err) {
+    const code = (err as { data?: { code?: string } }).data?.code
+    const message
+      = (code && EXPAND_ERROR_MESSAGES[code])
+        ?? (err as { statusMessage?: string }).statusMessage
+        ?? 'Expansion failed. Please try again.'
+    setExpandStatus(key, 'error', message)
+  }
 }
 
 const presetDetailError = ref<string | null>(null)
@@ -77,6 +112,9 @@ watch(selectedPresetId, async (id) => {
             v-model="inputs"
             :preset="selectedPreset"
             :errors="visibleErrors"
+            :expand-status="expandStatus"
+            :expand-errors="expandErrors"
+            @expand="handleExpand"
           />
         </div>
       </section>
