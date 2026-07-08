@@ -402,7 +402,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-022: Add AI Provider Adapter Abstraction
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `0.5-1 day`
 - Goal: Keep provider-specific code isolated from core workflow logic.
 - Tasks:
