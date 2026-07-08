@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { fetchPreset } from '~/api/presets'
 import { expandField } from '~/api/expand'
+import { generateImage } from '~/api/generate'
 
 definePageMeta({
   layout: 'default',
@@ -14,15 +15,55 @@ const {
   expandStatus,
   expandErrors,
   generateStatus,
+  generateError,
+  recentOutputs,
   setPreset,
   setInput,
   setExpandStatus,
+  setGenerateStatus,
+  addRecentOutput,
   attemptSubmit,
 } = useWorkflowState()
 
-function handleGenerate() {
-  if (!attemptSubmit()) return
-  // BL-025 will call POST /api/generate here.
+const latestOutput = computed(() => recentOutputs.value[0] ?? null)
+
+const GENERATE_ERROR_MESSAGES: Record<string, string> = {
+  invalid_payload: 'Some inputs are invalid. Please review and try again.',
+  invalid_inputs: 'Some required inputs are missing or invalid.',
+  preset_not_found: 'This preset is no longer available.',
+  invalid_preset: 'This preset is misconfigured.',
+  gemini_not_configured: 'Image generation is not configured.',
+  project_not_found: 'The selected project could not be found.',
+  moderation: 'The request was blocked by content safety filters. Try adjusting your inputs.',
+  provider_timeout: 'Image generation timed out. Please try again.',
+  provider_failure: 'Image generation failed. Please try again.',
+  storage_failed: 'The generated image could not be saved. Please try again.',
+  signed_url_failed: 'The image was generated but could not be displayed. Check recent outputs.',
+}
+
+async function handleGenerate() {
+  const preset = selectedPreset.value
+  if (!preset || !attemptSubmit()) return
+
+  setGenerateStatus('pending')
+  try {
+    const { generation, url } = await generateImage(preset.id, inputs.value)
+    addRecentOutput({
+      id: generation.id,
+      url,
+      prompt: generation.finalPrompt,
+      createdAt: generation.completedAt ?? generation.createdAt,
+      status: 'succeeded',
+    })
+    setGenerateStatus('idle')
+  } catch (err) {
+    const code = (err as { data?: { code?: string } }).data?.code
+    const message
+      = (code && GENERATE_ERROR_MESSAGES[code])
+        ?? (err as { statusMessage?: string }).statusMessage
+        ?? 'Image generation failed. Please try again.'
+    setGenerateStatus('error', message)
+  }
 }
 
 const EXPAND_ERROR_MESSAGES: Record<string, string> = {
@@ -205,7 +246,23 @@ watch(selectedPresetId, async (id) => {
     <main class="flex min-w-0 flex-1 flex-col">
       <!-- Image preview area -->
       <div class="flex flex-1 items-center justify-center bg-accented p-4">
+        <UiLoadingState
+          v-if="generateStatus === 'pending'"
+          label="Generating image…"
+        />
+        <UiErrorState
+          v-else-if="generateStatus === 'error'"
+          title="Generation failed"
+          :message="generateError ?? 'Something went wrong.'"
+        />
+        <img
+          v-else-if="latestOutput"
+          :src="latestOutput.url"
+          :alt="latestOutput.prompt"
+          class="max-h-full max-w-full rounded-md object-contain shadow-lg"
+        >
         <UiEmptyState
+          v-else
           title="No output yet"
           description="Select a preset and generate to see results here."
           icon="i-lucide-image"
@@ -216,6 +273,7 @@ watch(selectedPresetId, async (id) => {
       <div class="flex flex-col border-t border-default">
         <div class="h-32 bg-elevated p-3">
           <UTextarea
+            :model-value="latestOutput?.prompt ?? ''"
             placeholder="Assembled prompt will appear here..."
             :rows="3"
             disabled
