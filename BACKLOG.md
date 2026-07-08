@@ -419,7 +419,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-023: Add Gemini Image Generation Adapter
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `1.5-2.5 days`
 - Goal: Generate images from assembled prompts using Gemini.
 - Tasks:

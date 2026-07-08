@@ -13,6 +13,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     openaiApiKey: '',
     openaiModel: 'gpt-4o-mini',
+    geminiApiKey: '',
+    geminiModel: 'gemini-2.5-flash-image',
   },
 
   modules: [
