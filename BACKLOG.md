@@ -383,7 +383,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-021: Add Expand With AI UI
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `1-1.5 days`
 - Goal: Let users expand supported text fields from the dynamic form.
 - Tasks:
