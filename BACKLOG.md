@@ -436,7 +436,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-024: Implement `POST /api/generate`
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `2-3 days`
 - Goal: Generate a visual through the controlled preset workflow.
 - Tasks:
@@ -459,7 +459,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-025: Add Generate UI and Output Preview
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `1.5-2 days`
 - Goal: Let users generate and review images from the workflow page.
 - Tasks:
