@@ -17,7 +17,10 @@ const OPENAI_CHAT_PRICES: Record<string, ChatPrice> = {
 }
 
 const GEMINI_IMAGE_PRICES_PER_IMAGE: Record<string, number> = {
-  // Filled in alongside BL-023 once the model and pricing are picked.
+  // Estimate for the default image model (~1290 output tokens/image at the
+  // published image-output rate). Verify against current Gemini pricing before
+  // any billing decision.
+  'gemini-2.5-flash-image': 0.039,
 }
 
 export function estimateOpenAIChatCostCents(
