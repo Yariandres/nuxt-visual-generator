@@ -496,7 +496,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-027: Implement Project Save and Load APIs
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `1.5-2.5 days`
 - Goal: Persist user workflow state as projects.
 - Tasks:
