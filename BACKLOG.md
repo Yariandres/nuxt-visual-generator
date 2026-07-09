@@ -515,7 +515,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-028: Add Project Save and Load UI
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `1-2 days`
 - Goal: Let users save current inputs and restore a saved project.
 - Tasks:
