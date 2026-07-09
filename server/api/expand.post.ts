@@ -21,7 +21,9 @@ const EXPANSION_STATUS: Record<ExpansionErrorCode, number> = {
 
 export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event)
-  if (!user) throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
+  // `serverSupabaseUser` returns JWT claims; the user id is the `sub` claim.
+  const userId = user?.sub
+  if (!userId) throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
 
   const parsed = bodySchema.safeParse(await readBody(event))
   if (!parsed.success) {
@@ -78,7 +80,7 @@ export default defineEventHandler(async (event) => {
       // analytics holds.
       try {
         await recordUsageEvent({
-          userId: user.id,
+          userId,
           actionType: 'expand',
           provider: 'openai',
           model: config.openaiModel,

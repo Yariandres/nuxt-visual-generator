@@ -13,7 +13,9 @@ const bodySchema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event)
-  if (!user) throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
+  // `serverSupabaseUser` returns JWT claims; the user id is the `sub` claim.
+  const userId = user?.sub
+  if (!userId) throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
 
   const parsed = bodySchema.safeParse(await readBody(event))
   if (!parsed.success) {
@@ -50,7 +52,7 @@ export default defineEventHandler(async (event) => {
 
   const result = await runGeneration(
     { imageAdapter, storage, provider: 'gemini', model: config.geminiModel },
-    { userId: user.id, projectId, preset: presetResult.preset, inputs },
+    { userId, projectId, preset: presetResult.preset, inputs },
   )
 
   if (!result.ok) {
