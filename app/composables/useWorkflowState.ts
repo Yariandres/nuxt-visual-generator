@@ -23,6 +23,7 @@ export function useWorkflowState() {
   const generateError = useState<string | null>('workflow:generateError', () => null)
   const recentOutputs = useState<GeneratedOutput[]>('workflow:recentOutputs', () => [])
   const attemptedSubmit = useState<boolean>('workflow:attemptedSubmit', () => false)
+  const currentProjectId = useState<string | null>('workflow:currentProjectId', () => null)
 
   const validationErrors = computed<Record<string, string>>(() => {
     const preset = selectedPreset.value
@@ -49,8 +50,8 @@ export function useWorkflowState() {
     return seeded
   }
 
-  // Recent outputs are scoped per workflow session; switching preset is treated
-  // as switching projects until BL-027 lands actual project records.
+  // Manually choosing a preset starts fresh, detached work: seed defaults and
+  // drop any loaded-project association.
   function setPreset(preset: Preset | null) {
     selectedPreset.value = preset
     inputs.value = preset ? seedInputs(preset) : {}
@@ -60,6 +61,27 @@ export function useWorkflowState() {
     generateError.value = null
     recentOutputs.value = []
     attemptedSubmit.value = false
+    currentProjectId.value = null
+  }
+
+  // Restore a saved project: apply its preset, overlay saved inputs on top of
+  // the preset defaults, and record the project id so subsequent saves update
+  // it in place.
+  function restoreProject(preset: Preset, savedInputs: Record<string, string>, projectId: string) {
+    selectedPreset.value = preset
+    selectedPresetId.value = preset.id
+    inputs.value = { ...seedInputs(preset), ...savedInputs }
+    expandStatus.value = {}
+    expandErrors.value = {}
+    generateStatus.value = 'idle'
+    generateError.value = null
+    recentOutputs.value = []
+    attemptedSubmit.value = false
+    currentProjectId.value = projectId
+  }
+
+  function setCurrentProjectId(id: string | null) {
+    currentProjectId.value = id
   }
 
   function attemptSubmit(): boolean {
@@ -94,11 +116,14 @@ export function useWorkflowState() {
     generateStatus,
     generateError,
     recentOutputs,
+    currentProjectId,
     validationErrors,
     visibleErrors,
     isValid,
     attemptedSubmit,
     setPreset,
+    restoreProject,
+    setCurrentProjectId,
     setInput,
     setExpandStatus,
     setGenerateStatus,

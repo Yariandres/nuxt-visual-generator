@@ -2,6 +2,7 @@
 import { fetchPreset } from '~/api/presets'
 import { expandField } from '~/api/expand'
 import { generateImage } from '~/api/generate'
+import { createProject, fetchProject, updateProject } from '~/api/projects'
 
 definePageMeta({
   layout: 'default',
@@ -17,7 +18,10 @@ const {
   generateStatus,
   generateError,
   recentOutputs,
+  currentProjectId,
   setPreset,
+  restoreProject,
+  setCurrentProjectId,
   setInput,
   setExpandStatus,
   setGenerateStatus,
@@ -25,7 +29,75 @@ const {
   attemptSubmit,
 } = useWorkflowState()
 
+const route = useRoute()
+const router = useRouter()
+const toast = useToast()
+
 const latestOutput = computed(() => recentOutputs.value[0] ?? null)
+
+const saving = ref(false)
+const restoring = ref(false)
+
+async function handleSaveProject() {
+  const preset = selectedPreset.value
+  if (!preset || saving.value) return
+
+  saving.value = true
+  try {
+    if (currentProjectId.value) {
+      await updateProject(currentProjectId.value, { inputs: inputs.value })
+      toast.add({ title: 'Project updated', icon: 'i-lucide-check', color: 'success' })
+    } else {
+      const project = await createProject(preset.id, inputs.value)
+      setCurrentProjectId(project.id)
+      await router.replace({ query: { ...route.query, project: project.id } })
+      toast.add({ title: 'Project saved', icon: 'i-lucide-check', color: 'success' })
+    }
+  } catch (err) {
+    const message = (err as { statusMessage?: string }).statusMessage ?? 'Please try again.'
+    toast.add({ title: 'Could not save project', description: message, icon: 'i-lucide-x', color: 'error' })
+  } finally {
+    saving.value = false
+  }
+}
+
+async function restoreProjectFromId(id: string) {
+  restoring.value = true
+  try {
+    const project = await fetchProject(id)
+    const preset = await fetchPreset(project.presetId)
+    restoreProject(preset, project.inputs, project.id)
+    if (project.presetVersion !== preset.version) {
+      toast.add({
+        title: 'Preset version changed',
+        description: `Saved with v${project.presetVersion}; the preset is now v${preset.version}. Inputs were restored.`,
+        icon: 'i-lucide-triangle-alert',
+        color: 'warning',
+      })
+    }
+  } catch (err) {
+    const code = (err as { data?: { code?: string } }).data?.code
+    const message = code === 'project_not_found' ? 'Project not found.' : 'Failed to open project.'
+    toast.add({ title: 'Could not open project', description: message, icon: 'i-lucide-x', color: 'error' })
+    // Drop the unusable id from the URL so a refresh does not re-trigger it.
+    await router.replace({ query: { ...route.query, project: undefined } })
+  } finally {
+    restoring.value = false
+  }
+}
+
+onMounted(() => {
+  const pid = route.query.project
+  if (typeof pid === 'string' && pid) restoreProjectFromId(pid)
+})
+
+// When work detaches from a saved project (e.g. switching presets clears the
+// association), drop the stale id so a refresh doesn't reopen it.
+watch(currentProjectId, (id) => {
+  if (!id && route.query.project) {
+    router.replace({ query: { ...route.query, project: undefined } })
+  }
+})
 
 const GENERATE_ERROR_MESSAGES: Record<string, string> = {
   invalid_payload: 'Some inputs are invalid. Please review and try again.',
@@ -104,6 +176,8 @@ watch(selectedPresetId, async (id) => {
     setPreset(null)
     return
   }
+  // Already loaded (e.g. restored from a project) — don't reset seeded inputs.
+  if (selectedPreset.value?.id === id) return
   try {
     const preset = await fetchPreset(id)
     setPreset(preset)
@@ -130,8 +204,9 @@ watch(selectedPresetId, async (id) => {
       <!-- Input section -->
       <section class="flex flex-col gap-2 p-3">
         <h2 class="text-[10px] font-black tracking-wide text-dimmed uppercase">Input</h2>
+        <UiLoadingState v-if="restoring" label="Opening project…" />
         <UiEmptyState
-          v-if="!selectedPresetId"
+          v-else-if="!selectedPresetId"
           title="Pick a preset"
           description="Choose a preset on the left to start configuring inputs."
           icon="i-lucide-mouse-pointer-click"
@@ -143,11 +218,23 @@ watch(selectedPresetId, async (id) => {
         />
         <UiLoadingState v-else-if="!selectedPreset" label="Loading preset…" />
         <div v-else class="flex flex-col gap-3">
-          <div class="rounded-md border border-default bg-elevated p-3">
-            <div class="text-sm font-bold text-highlighted">{{ selectedPreset.name }}</div>
-            <div class="text-xs text-muted">
-              v{{ selectedPreset.version }} · Fields ({{ selectedPreset.fields.length }})
+          <div class="flex items-start justify-between gap-2 rounded-md border border-default bg-elevated p-3">
+            <div class="min-w-0">
+              <div class="truncate text-sm font-bold text-highlighted">{{ selectedPreset.name }}</div>
+              <div class="text-xs text-muted">
+                v{{ selectedPreset.version }} · Fields ({{ selectedPreset.fields.length }})
+                <span v-if="currentProjectId"> · Saved</span>
+              </div>
             </div>
+            <UButton
+              :label="currentProjectId ? 'Update' : 'Save'"
+              icon="i-lucide-save"
+              size="xs"
+              variant="soft"
+              :loading="saving"
+              :disabled="saving || restoring"
+              @click="handleSaveProject"
+            />
           </div>
           <FeaturesPresetsFieldsForm
             v-model="inputs"
