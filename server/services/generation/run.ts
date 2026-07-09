@@ -9,6 +9,7 @@ import { StorageError } from '~~/server/services/storage/errors'
 import { extForMimeType } from '~~/server/services/storage/path'
 import { assemblePrompt } from '~~/server/services/prompt/assemble'
 import { ensurePresetRecord } from '~~/server/services/presets/persist'
+import { ensureProfile } from '~~/server/services/profiles/ensure'
 import { estimateGeminiImageCostCents } from '~~/server/services/usage/pricing'
 import { recordUsageEvent, type RecordUsageEventInput } from '~~/server/services/usage/record'
 import { prisma } from '~~/server/utils/prisma'
@@ -111,7 +112,9 @@ export async function runGeneration(
     }
   }
 
-  // 3. Ensure the DB preset row exists, then open a pending generation record.
+  // 3. Ensure the user's profile + DB preset row exist, then open a pending
+  // generation record.
+  await ensureProfile(userId)
   const dbPreset = await ensurePresetRecord(preset)
   const generation = await prisma.generation.create({
     data: {
