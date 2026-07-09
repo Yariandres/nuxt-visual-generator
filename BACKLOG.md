@@ -532,7 +532,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-029: Implement Project Generation History API
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `1-1.5 days`
 - Goal: Return recent generation records for a project.
 - Tasks:
