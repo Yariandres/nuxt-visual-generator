@@ -603,7 +603,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-033: Add Request Validation and Sanitization
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `1-2 days`
 - Goal: Validate all incoming backend payloads before using them.
 - Tasks:
