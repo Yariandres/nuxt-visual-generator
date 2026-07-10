@@ -23,6 +23,8 @@
     "postinstall": "nuxt prepare && prisma generate",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
@@ -47,6 +49,7 @@
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.111",
     "husky": "^9.1.7",
-    "prisma": "^6.2.1"
+    "prisma": "^6.2.1",
+    "vitest": "^4.1.10"
   }
 }
