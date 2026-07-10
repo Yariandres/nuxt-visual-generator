@@ -13,6 +13,7 @@ async function handleSignOut() {
       <div class="flex items-center gap-4">
         <span class="text-sm font-bold text-muted">File</span>
         <span class="text-sm font-bold text-muted">About</span>
+        <NuxtLink to="/usage" class="text-sm font-bold text-muted hover:text-highlighted">Usage</NuxtLink>
       </div>
 
       <div class="flex items-center gap-3">
