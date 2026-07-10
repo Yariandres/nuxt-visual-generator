@@ -4,11 +4,17 @@ import { loadPreset } from '~~/server/services/presets/loader'
 import { createGeminiImageGenerationAdapter } from '~~/server/services/ai/gemini'
 import { createSupabaseStorageAdapter } from '~~/server/services/storage/supabase'
 import { runGeneration } from '~~/server/services/generation/run'
+import {
+  inputsSchema,
+  presetIdSchema,
+  projectIdSchema,
+  parseBody,
+} from '~~/server/utils/validation'
 
 const bodySchema = z.object({
-  presetId: z.string().min(1),
-  inputs: z.record(z.string(), z.string()),
-  projectId: z.string().min(1).optional(),
+  presetId: presetIdSchema,
+  inputs: inputsSchema,
+  projectId: projectIdSchema.optional(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -17,18 +23,7 @@ export default defineEventHandler(async (event) => {
   const userId = user?.sub
   if (!userId) throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
 
-  const parsed = bodySchema.safeParse(await readBody(event))
-  if (!parsed.success) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Bad Request',
-      data: {
-        code: 'invalid_payload',
-        errors: parsed.error.issues.map(i => ({ path: i.path.join('.'), message: i.message })),
-      },
-    })
-  }
-  const { presetId, inputs, projectId } = parsed.data
+  const { presetId, inputs, projectId } = await parseBody(event, bodySchema)
 
   const presetResult = await loadPreset(presetId)
   if (!presetResult.ok) {

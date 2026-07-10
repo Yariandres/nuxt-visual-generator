@@ -14,6 +14,10 @@ import {
 // shipping. Do not rely on filesystem loading in prod.
 const ENGINES_DIR = resolve(process.cwd(), 'engines')
 const PRESET_EXT = '.rdt'
+// A preset id becomes a filename; reject anything but a safe slug so a crafted
+// id (e.g. `../../etc/passwd`) can never traverse out of ENGINES_DIR. Routes
+// also validate this, but the loader is the true sink so it guards too.
+const SAFE_PRESET_ID = /^[A-Za-z0-9_]+$/
 
 export interface PresetLoadError {
   file: string
@@ -61,6 +65,7 @@ export async function listPresets(): Promise<ListPresetsResult> {
 }
 
 export async function loadPreset(id: string): Promise<LoadPresetResult> {
+  if (!SAFE_PRESET_ID.test(id)) return { ok: false, reason: 'not_found' }
   const file = `${id}${PRESET_EXT}`
   let raw: string
   try {

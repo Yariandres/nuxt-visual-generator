@@ -1,18 +1,12 @@
 import { serverSupabaseUser } from '#supabase/server'
 import { loadPreset } from '~~/server/services/presets/loader'
+import { presetIdSchema, validatedParam } from '~~/server/utils/validation'
 
 export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event)
   if (!user) throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
 
-  const id = getRouterParam(event, 'id')
-  if (!id) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Bad Request',
-      data: { code: 'missing_id' },
-    })
-  }
+  const id = validatedParam(event, 'id', presetIdSchema)
 
   const result = await loadPreset(id)
   if (result.ok) return result.preset

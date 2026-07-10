@@ -1,6 +1,7 @@
 import { serverSupabaseUser, serverSupabaseServiceRole } from '#supabase/server'
 import { createSupabaseStorageAdapter } from '~~/server/services/storage/supabase'
 import { listProjectGenerations } from '~~/server/services/generations/history'
+import { projectIdSchema, validatedParam } from '~~/server/utils/validation'
 
 export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event)
@@ -8,8 +9,7 @@ export default defineEventHandler(async (event) => {
   const userId = user?.sub
   if (!userId) throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
 
-  const id = getRouterParam(event, 'id')
-  if (!id) throw createError({ statusCode: 400, statusMessage: 'Bad Request', data: { code: 'invalid_payload' } })
+  const id = validatedParam(event, 'id', projectIdSchema)
 
   const storage = createSupabaseStorageAdapter({ client: serverSupabaseServiceRole(event) })
   const result = await listProjectGenerations(storage, userId, id)

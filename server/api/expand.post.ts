@@ -5,11 +5,21 @@ import { expandField, type ExpansionErrorCode } from '~~/server/services/ai/expa
 import { loadPreset } from '~~/server/services/presets/loader'
 import { estimateOpenAIChatCostCents } from '~~/server/services/usage/pricing'
 import { recordUsageEvent } from '~~/server/services/usage/record'
+import {
+  fieldKeySchema,
+  presetIdSchema,
+  parseBody,
+  sanitizeText,
+} from '~~/server/utils/validation'
 
 const bodySchema = z.object({
-  presetId: z.string().min(1),
-  fieldKey: z.string().min(1),
-  value: z.string().trim().min(1, 'value cannot be empty').max(2000, 'value too long'),
+  presetId: presetIdSchema,
+  fieldKey: fieldKeySchema,
+  value: z
+    .string()
+    .max(2000, 'value too long')
+    .transform(sanitizeText)
+    .pipe(z.string().min(1, 'value cannot be empty')),
 })
 
 const EXPANSION_STATUS: Record<ExpansionErrorCode, number> = {
@@ -25,21 +35,7 @@ export default defineEventHandler(async (event) => {
   const userId = user?.sub
   if (!userId) throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
 
-  const parsed = bodySchema.safeParse(await readBody(event))
-  if (!parsed.success) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Bad Request',
-      data: {
-        code: 'invalid_payload',
-        errors: parsed.error.issues.map(i => ({
-          path: i.path.join('.'),
-          message: i.message,
-        })),
-      },
-    })
-  }
-  const { presetId, fieldKey, value } = parsed.data
+  const { presetId, fieldKey, value } = await parseBody(event, bodySchema)
 
   const presetResult = await loadPreset(presetId)
   if (!presetResult.ok) {
