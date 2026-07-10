@@ -585,7 +585,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-032: Add Internal Usage Review View
 
 - Priority: `P1`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `0.5-1 day`
 - Goal: Provide simple visibility into usage before full billing exists.
 - Tasks:
@@ -653,7 +653,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-036: Add Core Tests
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `2-3 days`
 - Goal: Cover the riskiest V1 workflow logic.
 - Tasks:

@@ -19,7 +19,7 @@ Package manager is **pnpm** (pnpm-lock.yaml present, `.npmrc` has `shamefully-ho
 
 **Pre-commit hook** (`.husky/pre-commit`) runs `pnpm lint` — fix lint errors before committing rather than bypassing.
 
-No test runner is installed yet — there is no `test` script and no Vitest in `package.json`. `AGENTS.md` describes a testing workflow that does not yet exist; do not invoke `pnpm test` or `pnpm vitest` until the runner is actually wired up.
+**Tests** (BL-036): Vitest is wired up. `pnpm test` runs the suite once (CI-ready), `pnpm test:watch` runs in watch mode. Tests live in `tests/` and run as plain-node Vitest (config in `vitest.config.ts` maps the `#shared` and `~~` aliases). Coverage targets framework-agnostic server/shared logic — preset validation, prompt assembly, storage paths, expand guards, and project-ownership rules (Prisma mocked). Component/Nuxt-runtime tests are not set up; add `@nuxt/test-utils` if those are needed.
 
 ## Architecture
 
