@@ -39,3 +39,20 @@ export async function updateProject(
   })
   return project
 }
+
+export interface GenerationHistoryItem {
+  id: string
+  url: string
+  prompt: string
+  status: 'succeeded'
+  mimeType: string | null
+  createdAt: string
+  completedAt: string | null
+}
+
+export async function fetchProjectGenerations(id: string): Promise<GenerationHistoryItem[]> {
+  const { generations } = await $fetch<{ generations: GenerationHistoryItem[] }>(
+    `/api/projects/${encodeURIComponent(id)}/generations`,
+  )
+  return generations
+}
