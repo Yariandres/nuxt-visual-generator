@@ -549,7 +549,7 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ### BL-030: Add Recent Outputs UI
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `1-1.5 days`
 - Goal: Show the last 10 generated outputs for the current project.
 - Tasks:
