@@ -2,7 +2,7 @@
 import { fetchPreset } from '~/api/presets'
 import { expandField } from '~/api/expand'
 import { generateImage } from '~/api/generate'
-import { createProject, fetchProject, updateProject } from '~/api/projects'
+import { createProject, fetchProject, updateProject, fetchProjectGenerations } from '~/api/projects'
 
 definePageMeta({
   layout: 'default',
@@ -26,6 +26,7 @@ const {
   setExpandStatus,
   setGenerateStatus,
   addRecentOutput,
+  setRecentOutputs,
   attemptSubmit,
 } = useWorkflowState()
 
@@ -33,7 +34,36 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 
-const latestOutput = computed(() => recentOutputs.value[0] ?? null)
+// Which recent output is shown in the preview. Falls back to the latest.
+const selectedOutputId = ref<string | null>(null)
+const selectedOutput = computed(() => {
+  const list = recentOutputs.value
+  if (list.length === 0) return null
+  return list.find(o => o.id === selectedOutputId.value) ?? list[0]
+})
+const selectedOutputIndex = computed(() => {
+  const current = selectedOutput.value
+  return current ? recentOutputs.value.findIndex(o => o.id === current.id) : -1
+})
+
+// Keep the selection valid as the list changes; default to the latest output.
+watch(recentOutputs, (list) => {
+  const first = list[0]
+  if (!first) {
+    selectedOutputId.value = null
+  } else if (!list.some(o => o.id === selectedOutputId.value)) {
+    selectedOutputId.value = first.id
+  }
+})
+
+function selectOutput(id: string) {
+  selectedOutputId.value = id
+}
+
+function stepOutput(delta: number) {
+  const next = recentOutputs.value[selectedOutputIndex.value + delta]
+  if (next) selectedOutputId.value = next.id
+}
 
 const saving = ref(false)
 const restoring = ref(false)
@@ -67,6 +97,19 @@ async function restoreProjectFromId(id: string) {
     const project = await fetchProject(id)
     const preset = await fetchPreset(project.presetId)
     restoreProject(preset, project.inputs, project.id)
+    // Populate recent outputs from the project's persisted history.
+    try {
+      const history = await fetchProjectGenerations(project.id)
+      setRecentOutputs(history.map(h => ({
+        id: h.id,
+        url: h.url,
+        prompt: h.prompt,
+        createdAt: h.completedAt ?? h.createdAt,
+        status: h.status,
+      })))
+    } catch (err) {
+      console.error('[generate] failed to load project history:', err)
+    }
     if (project.presetVersion !== preset.version) {
       toast.add({
         title: 'Preset version changed',
@@ -119,7 +162,11 @@ async function handleGenerate() {
 
   setGenerateStatus('pending')
   try {
-    const { generation, url } = await generateImage(preset.id, inputs.value)
+    const { generation, url } = await generateImage(
+      preset.id,
+      inputs.value,
+      currentProjectId.value ?? undefined,
+    )
     addRecentOutput({
       id: generation.id,
       url,
@@ -127,6 +174,7 @@ async function handleGenerate() {
       createdAt: generation.completedAt ?? generation.createdAt,
       status: 'succeeded',
     })
+    selectedOutputId.value = generation.id
     setGenerateStatus('idle')
   } catch (err) {
     const code = (err as { data?: { code?: string } }).data?.code
@@ -343,9 +391,9 @@ watch(selectedPresetId, async (id) => {
           :message="generateError ?? 'Something went wrong.'"
         />
         <img
-          v-else-if="latestOutput"
-          :src="latestOutput.url"
-          :alt="latestOutput.prompt"
+          v-else-if="selectedOutput"
+          :src="selectedOutput.url"
+          :alt="selectedOutput.prompt"
           class="max-h-full max-w-full rounded-md object-contain shadow-lg"
         >
         <UiEmptyState
@@ -356,11 +404,28 @@ watch(selectedPresetId, async (id) => {
         />
       </div>
 
+      <!-- Recent outputs strip -->
+      <div
+        v-if="recentOutputs.length"
+        class="flex gap-2 overflow-x-auto border-t border-default bg-default p-2"
+      >
+        <button
+          v-for="output in recentOutputs"
+          :key="output.id"
+          type="button"
+          class="size-14 shrink-0 overflow-hidden rounded border-2 transition-colors"
+          :class="output.id === selectedOutput?.id ? 'border-primary' : 'border-transparent hover:border-muted'"
+          @click="selectOutput(output.id)"
+        >
+          <img :src="output.url" :alt="output.prompt" class="size-full object-cover">
+        </button>
+      </div>
+
       <!-- Prompt / Run area -->
       <div class="flex flex-col border-t border-default">
         <div class="h-32 bg-elevated p-3">
           <UTextarea
-            :model-value="latestOutput?.prompt ?? ''"
+            :model-value="selectedOutput?.prompt ?? ''"
             placeholder="Assembled prompt will appear here..."
             :rows="3"
             disabled
@@ -369,21 +434,25 @@ watch(selectedPresetId, async (id) => {
         </div>
         <div class="flex items-center justify-between border-t border-default px-3 py-2">
           <div class="flex items-center gap-2">
-            <UButton icon="i-lucide-chevron-left" size="xs" color="neutral" variant="soft" disabled />
-            <span class="text-sm text-muted">0</span>
-            <UButton icon="i-lucide-chevron-right" size="xs" color="neutral" variant="soft" disabled />
-          </div>
-          <div class="flex items-center gap-3">
             <UButton
-              label="RUN"
+              icon="i-lucide-chevron-left"
               size="xs"
-              disabled
-            >
-              <template #trailing>
-                <USeparator orientation="vertical" class="h-3" />
-                <span class="text-xs">20 cr.</span>
-              </template>
-            </UButton>
+              color="neutral"
+              variant="soft"
+              :disabled="selectedOutputIndex <= 0"
+              @click="stepOutput(-1)"
+            />
+            <span class="text-sm text-muted">
+              {{ recentOutputs.length ? `${selectedOutputIndex + 1} / ${recentOutputs.length}` : '0' }}
+            </span>
+            <UButton
+              icon="i-lucide-chevron-right"
+              size="xs"
+              color="neutral"
+              variant="soft"
+              :disabled="selectedOutputIndex < 0 || selectedOutputIndex >= recentOutputs.length - 1"
+              @click="stepOutput(1)"
+            />
           </div>
         </div>
       </div>
