@@ -107,6 +107,12 @@ export function useWorkflowState() {
     recentOutputs.value = [output, ...recentOutputs.value].slice(0, RECENT_OUTPUT_LIMIT)
   }
 
+  // Replace the recent-outputs list wholesale, e.g. when loading a project's
+  // persisted generation history.
+  function setRecentOutputs(outputs: GeneratedOutput[]) {
+    recentOutputs.value = outputs.slice(0, RECENT_OUTPUT_LIMIT)
+  }
+
   return {
     selectedPresetId,
     selectedPreset,
@@ -128,6 +134,7 @@ export function useWorkflowState() {
     setExpandStatus,
     setGenerateStatus,
     addRecentOutput,
+    setRecentOutputs,
     attemptSubmit,
   }
 }
