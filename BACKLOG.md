@@ -253,6 +253,25 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
   - The implementation path does not require frontend filesystem access.
 - Dependencies: BL-007, BL-012.
 
+### BL-039: Serve Presets from the Database in Production
+
+- Priority: `P1`
+- Status: `Todo`
+- Estimate: `1-2 days`
+- Goal: Replace the filesystem/server-asset preset loader with the DB-backed `Preset` model as the production source of truth, so presets are backend-managed rather than shipped in the deploy bundle.
+- Context: V1 loads `engines/*.rdt` files. A runtime `fs` read worked in dev but returned nothing in the Netlify serverless bundle (untraced files are dropped), so production showed "No presets yet". Interim fix bundles `engines/` as a Nitro server asset (`nitro.serverAssets`, mount `assets:engines`) read via `useStorage` in `server/services/presets/loader.ts`. This unblocks prod but still couples presets to the deploy.
+- Tasks:
+  - Read preset list/detail from the `presets` table (see `ensurePresetRecord` in `server/services/presets/persist.ts` and the schema from BL-007/BL-013).
+  - Add a seed/import path to load `engines/*.rdt` into the DB (dev bootstrap and/or admin action).
+  - Keep the `assets:engines` loader available behind a flag as a dev fallback, or remove it once the DB path is the default.
+  - Preserve preset validation, `(slug, version)` versioning, and the id/slug safety guard.
+  - Update `server/api/presets` routes and tests to cover the DB-backed path.
+- Acceptance criteria:
+  - Production lists and loads presets from the database without any preset files in the deploy bundle.
+  - Preset versioning stays explicit and projects/generations still reference the exact version used.
+  - Adding or updating a preset does not require a redeploy.
+- Dependencies: BL-013, BL-012.
+
 ## Milestone 4: Dynamic Workflow UI
 
 ### BL-014: Build Preset Selector
