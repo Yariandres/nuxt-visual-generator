@@ -2,7 +2,6 @@
 definePageMeta({
   layout: 'public',
 })
-
 const user = useSupabaseUser()
 </script>
 
