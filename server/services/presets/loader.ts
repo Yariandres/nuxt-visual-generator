@@ -1,5 +1,5 @@
-import { readdir, readFile } from 'node:fs/promises'
-import { basename, extname, resolve } from 'node:path'
+import { basename } from 'node:path'
+import type { Storage } from 'unstorage'
 import {
   presetSummary,
   validatePreset,
@@ -8,16 +8,29 @@ import {
   type PresetValidationError,
 } from '#shared/schemas/preset'
 
-// V1 dev-only: reads from the repo's `engines/` dir at runtime. The
-// DB-backed `Preset` model (slug + version, JsonB definition) is the
-// production source of truth; swap this loader to read from there before
-// shipping. Do not rely on filesystem loading in prod.
-const ENGINES_DIR = resolve(process.cwd(), 'engines')
+// V1 dev-only: reads the repo's `engines/` `.rdt` files, bundled into the
+// server output as the `assets:engines` server asset (see nuxt.config.ts) so
+// they resolve in the Netlify serverless bundle too. The DB-backed `Preset`
+// model (slug + version, JsonB definition) is the production source of truth;
+// swap this loader to read from there before shipping (BL-039).
 const PRESET_EXT = '.rdt'
-// A preset id becomes a filename; reject anything but a safe slug so a crafted
-// id (e.g. `../../etc/passwd`) can never traverse out of ENGINES_DIR. Routes
-// also validate this, but the loader is the true sink so it guards too.
+// A preset id becomes a storage key; reject anything but a safe slug so a
+// crafted id (e.g. `../../etc/passwd`) can never escape the engines mount.
+// Routes also validate this, but the loader is the true sink so it guards too.
 const SAFE_PRESET_ID = /^[A-Za-z0-9_]+$/
+
+// Tests run as plain-node Vitest without a Nitro runtime, so they inject a
+// filesystem-backed storage here. In dev/prod this stays undefined and the
+// Nitro-provided `assets:engines` mount is used.
+let enginesStorageOverride: Storage | undefined
+
+export function _setEnginesStorageForTests(storage: Storage | undefined): void {
+  enginesStorageOverride = storage
+}
+
+function enginesStorage(): Storage {
+  return enginesStorageOverride ?? useStorage('assets:engines')
+}
 
 export interface PresetLoadError {
   file: string
@@ -36,28 +49,28 @@ export type LoadPresetResult =
   | { ok: false, reason: 'id_mismatch', expectedId: string, actualId: string }
 
 export async function listPresets(): Promise<ListPresetsResult> {
-  const files = await listPresetFiles()
+  const keys = await listPresetKeys()
   const presets: PresetSummary[] = []
   const invalid: PresetLoadError[] = []
 
-  for (const file of files) {
-    const expectedId = basename(file, PRESET_EXT)
-    const result = await readAndValidate(file, expectedId)
+  for (const key of keys) {
+    const expectedId = basename(key, PRESET_EXT)
+    const result = await readAndValidate(key, expectedId)
     if (result.ok) {
       presets.push(presetSummary(result.preset))
       continue
     }
     invalid.push({
-      file,
+      file: key,
       errors:
         result.reason === 'invalid'
           ? result.errors
           : result.reason === 'id_mismatch'
             ? [{
                 path: 'id',
-                message: `filename "${file}" implies id "${expectedId}" but preset.id is "${result.actualId}"`,
+                message: `key "${key}" implies id "${expectedId}" but preset.id is "${result.actualId}"`,
               }]
-            : [{ path: '<root>', message: 'preset file disappeared during listing' }],
+            : [{ path: '<root>', message: 'preset asset disappeared during listing' }],
     })
   }
 
@@ -66,52 +79,37 @@ export async function listPresets(): Promise<ListPresetsResult> {
 
 export async function loadPreset(id: string): Promise<LoadPresetResult> {
   if (!SAFE_PRESET_ID.test(id)) return { ok: false, reason: 'not_found' }
-  const file = `${id}${PRESET_EXT}`
-  let raw: string
-  try {
-    raw = await readFile(resolve(ENGINES_DIR, file), 'utf8')
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-      return { ok: false, reason: 'not_found' }
-    }
-    throw err
-  }
-  return parseAndValidate(raw, id)
+  return readAndValidate(`${id}${PRESET_EXT}`, id)
 }
 
-async function listPresetFiles(): Promise<string[]> {
-  try {
-    const entries = await readdir(ENGINES_DIR)
-    return entries.filter(name => extname(name) === PRESET_EXT)
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return []
-    throw err
-  }
+async function listPresetKeys(): Promise<string[]> {
+  const keys = await enginesStorage().getKeys()
+  return keys.filter(key => key.endsWith(PRESET_EXT))
 }
 
-async function readAndValidate(file: string, expectedId: string): Promise<LoadPresetResult> {
-  let raw: string
-  try {
-    raw = await readFile(resolve(ENGINES_DIR, file), 'utf8')
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-      return { ok: false, reason: 'not_found' }
-    }
-    throw err
-  }
+async function readAndValidate(key: string, expectedId: string): Promise<LoadPresetResult> {
+  // getItem applies destr, so a JSON `.rdt` may come back already parsed (an
+  // object) or as a raw string depending on the driver; parseAndValidate
+  // handles both. A missing key returns null.
+  const raw = await enginesStorage().getItem(key)
+  if (raw == null) return { ok: false, reason: 'not_found' }
   return parseAndValidate(raw, expectedId)
 }
 
-function parseAndValidate(raw: string, expectedId: string): LoadPresetResult {
+function parseAndValidate(raw: unknown, expectedId: string): LoadPresetResult {
   let parsed: unknown
-  try {
-    parsed = JSON.parse(raw)
-  } catch (err) {
-    return {
-      ok: false,
-      reason: 'invalid',
-      errors: [{ path: '<root>', message: `failed to parse JSON: ${(err as Error).message}` }],
+  if (typeof raw === 'string') {
+    try {
+      parsed = JSON.parse(raw)
+    } catch (err) {
+      return {
+        ok: false,
+        reason: 'invalid',
+        errors: [{ path: '<root>', message: `failed to parse JSON: ${(err as Error).message}` }],
+      }
     }
+  } else {
+    parsed = raw
   }
   const result = validatePreset(parsed)
   if (!result.ok) return { ok: false, reason: 'invalid', errors: result.errors }
