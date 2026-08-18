@@ -88,9 +88,10 @@ async function listPresetKeys(): Promise<string[]> {
 }
 
 async function readAndValidate(key: string, expectedId: string): Promise<LoadPresetResult> {
-  // getItem applies destr, so a JSON `.rdt` may come back already parsed (an
-  // object) or as a raw string depending on the driver; parseAndValidate
-  // handles both. A missing key returns null.
+  // A `.rdt` asset can come back three ways depending on the driver: a raw
+  // string (fs driver in dev), an already-parsed object (destr on a string),
+  // or a `Uint8Array` of bytes (Nitro's bundled server assets in the Netlify
+  // build). parseAndValidate normalizes all three. A missing key returns null.
   const raw = await enginesStorage().getItem(key)
   if (raw == null) return { ok: false, reason: 'not_found' }
   return parseAndValidate(raw, expectedId)
@@ -98,9 +99,10 @@ async function readAndValidate(key: string, expectedId: string): Promise<LoadPre
 
 function parseAndValidate(raw: unknown, expectedId: string): LoadPresetResult {
   let parsed: unknown
-  if (typeof raw === 'string') {
+  if (typeof raw === 'string' || raw instanceof Uint8Array || raw instanceof ArrayBuffer) {
+    const text = typeof raw === 'string' ? raw : new TextDecoder().decode(raw)
     try {
-      parsed = JSON.parse(raw)
+      parsed = JSON.parse(text)
     } catch (err) {
       return {
         ok: false,
