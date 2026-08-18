@@ -1,9 +1,25 @@
+import { fileURLToPath } from 'node:url'
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
   future: {
     compatibilityVersion: 4,
+  },
+
+  // Bundle the local `.rdt` presets into the server output as a Nitro server
+  // asset. A runtime `fs` read of `engines/` works in dev but not in the
+  // Netlify serverless bundle (untraced files are dropped), which is why prod
+  // showed "No presets yet". The loader reads these via `useStorage`.
+  // TODO(BL-039): remove once presets are served from the DB in production.
+  nitro: {
+    serverAssets: [
+      {
+        baseName: 'engines',
+        dir: fileURLToPath(new URL('./engines', import.meta.url)),
+      },
+    ],
   },
 
   css: ['~/assets/css/main.css'],
