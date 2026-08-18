@@ -723,6 +723,113 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
   - Known risks are documented before launch.
 - Dependencies: BL-033, BL-034, BL-036, BL-037.
 
+## Milestone 10: Engine v2 — Client `.rdt` Format
+
+Adopt the richer preset format used by the three client-supplied `.rdt` files. Full spec,
+gap analysis, and open questions live in `docs/engine-v2-plan.md`. The client format is a
+token-resolution engine (`tokenMap` + locked blocks + params-with-prompt-fragments +
+per-field AI expansion) that V1's `template`/`fields[]` schema cannot represent. Direction
+confirmed: upgrade the engine to their format rather than converting files down to V1.
+
+### BL-040: Define v2 Preset Schema and Validation
+
+- Priority: `P0`
+- Status: `Todo`
+- Estimate: `2-3 days`
+- Goal: Validate the client format (`id`, `label`, `version`, `engineBlocks`/`coreFiles`, `dynamicFields[]`, `specialParams[]`, `promptAssembly.template`, `tokenMap`) with a format discriminator so V1 and v2 can be told apart.
+- Tasks:
+  - Add a v2 zod schema alongside the V1 schema; branch on a format/`schemaVersion` marker.
+  - Validate `dynamicFields` (`textarea`, `aiExpansion`), `specialParams` (`select` with per-option `prompt`, `checkbox` with true/false branches).
+  - Cross-validate: every `{{TOKEN}}` in `promptAssembly.template` has a `tokenMap` entry; every `tokenMap` `field`/`param`/`core`/`engine` key exists; `computed` keys are whitelisted.
+  - Keep the safe-slug id rule and filename/id match.
+- Acceptance criteria:
+  - The three client presets validate (after the `foto-*` id/filename fix).
+  - Invalid token/field/param references fail with actionable errors.
+- Dependencies: BL-010.
+
+### BL-041: Implement tokenMap Prompt-Assembly Engine
+
+- Priority: `P0`
+- Status: `Todo`
+- Estimate: `2-3 days`
+- Goal: Resolve `promptAssembly.template` via `tokenMap` into the final prompt.
+- Tasks:
+  - Resolve `core`/`engine` → locked block strings; `field` → input value or `fallback`; `param` → selected option/checkbox `prompt` fragment; `computed` → per-key handlers.
+  - Implement observed computed key `colorBlock` (pending client confirmation of full logic).
+  - Detect unresolved tokens; preserve the "exact final prompt is persisted" contract.
+- Acceptance criteria:
+  - Given fields + params, assembly produces the expected prompt for each client preset.
+  - Missing required inputs and unknown tokens fail clearly.
+- Dependencies: BL-040.
+
+### BL-042: specialParams Model and UI
+
+- Priority: `P0`
+- Status: `Todo`
+- Estimate: `1.5-2 days`
+- Goal: Render and manage `specialParams` (the Parameters panel) whose selections inject prompt fragments.
+- Tasks:
+  - `select` params (options with `value`/`label`/`prompt`) and `checkbox` params (true/false prompt branches) with defaults.
+  - Track param selection state and feed it to assembly and generate.
+- Acceptance criteria:
+  - Params render from the preset, apply defaults, and change the assembled prompt.
+- Dependencies: BL-040, BL-041.
+
+### BL-043: textarea Fields and Per-Field AI Expansion
+
+- Priority: `P0`
+- Status: `Todo`
+- Estimate: `2-3 days`
+- Goal: Support `textarea` dynamic fields and the richer `aiExpansion` contract.
+- Tasks:
+  - Render `textarea` fields; gate expand on `aiEnabled`.
+  - Expansion uses per-field `model` and `instruction`; honor `includeFieldValue` and pull `contextFields` values as context.
+  - Update the expand guard (`type==='textarea' && aiEnabled`) and the OpenAI adapter to accept a per-call model.
+- Acceptance criteria:
+  - A field expands using its own model/instruction with sibling-field context.
+  - Fields without `aiEnabled` cannot expand.
+- Dependencies: BL-040, BL-019.
+
+### BL-044: Update generate/expand APIs for Params
+
+- Priority: `P0`
+- Status: `Todo`
+- Estimate: `1-1.5 days`
+- Goal: Carry `params` alongside `fields` through the API layer.
+- Tasks:
+  - Extend `/api/generate` and `/api/expand` request schemas with params.
+  - Pass fields + params into the v2 assembler; keep validation server-side.
+- Acceptance criteria:
+  - Generate/expand work end-to-end with a v2 preset.
+- Dependencies: BL-041, BL-042, BL-043.
+
+### BL-045: Load the Client Presets
+
+- Priority: `P0`
+- Status: `Todo`
+- Estimate: `0.5 day`
+- Goal: Get the three client presets loading in the app.
+- Tasks:
+  - Fix `foto-lifestyle-from-set` id/filename mismatch.
+  - Move the files into `engines/` (or the DB per BL-039); port or retire `visual_scene_v1`.
+- Acceptance criteria:
+  - All three presets appear and load in `/generate`.
+- Dependencies: BL-040 through BL-044.
+
+### BL-046: v2 Engine Tests
+
+- Priority: `P0`
+- Status: `Todo`
+- Estimate: `1.5-2 days`
+- Goal: Cover the v2 engine's risky logic.
+- Tasks:
+  - Test v2 schema validation (valid + malformed).
+  - Test tokenMap resolution for every source, including `computed` and fallbacks.
+  - Test param prompt-fragment injection and expansion context assembly.
+- Acceptance criteria:
+  - v2 assembly and validation have success/failure coverage.
+- Dependencies: BL-040 through BL-044.
+
 ## Suggested Build Sequence
 
 1. BL-001 through BL-004: Create the Nuxt foundation and project structure.
