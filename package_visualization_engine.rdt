@@ -1,0 +1,246 @@
+{
+  "id": "package_visualization_engine",
+  "label": "package_visualization_engine",
+  "version": "2.0.0",
+
+  "engineBlocks": {
+    "engineIntent": "Create a premium photorealistic advertising key visual of a product package based on two reference images: package reference image and items reference image. The result must feel like a high-end campaign visual, not a simple packshot. The final image should be suitable for professional compositing, campaign use, and transparent-background cutout workflows.",
+
+    "packageRules": "The package must remain visually identical to the reference. Preserve shape, proportions, structure, material, color, and edges. Do not redesign or reinterpret the box.",
+
+    "lidRules": "Respect the selected lid mode exactly. If lid mode is absent, do not show the lid, do not generate the lid, and do not suggest any detached top element. If lid mode is present, the lid must belong to the exact same package, match the same material and proportions, and remain physically believable.",
+
+    "itemRules": "All items must match the items reference image exactly. Treat items as flat 2D cutouts extracted from the reference. Preserve exact shape, packaging design, labels, proportions, and front-facing character. Do not redesign items, generate new products, change packaging, or alter proportions. Allowed transformations: repositioning, scaling, slight planar rotation, and controlled overlap.",
+
+    "compositionRules": "Create a dynamic, high-end advertising composition. The box is the origin point and central anchor. Products should emerge from the box, move outward and slightly toward the viewer, and feel larger and more dominant than the box interior. Use clear hierarchy, controlled overlap, clean spacing, slight planar rotation, and strong but controlled directional flow. Avoid symmetry, avoid evenly spaced layouts, avoid flat horizontal distribution, avoid fan layouts, and avoid chaotic scattering. The composition should feel like a frozen moment mid-motion.",
+
+    "frameSafetyRules": "All elements must remain fully inside the frame. No object may touch the image edges. No object may be cropped. No accent may reach the border. Maintain clean negative space around the entire composition. The arrangement must remain centered, contained, and safe for transparent-background cutout use.",
+
+    "backgroundRules": "Use a clean premium studio background. A subtle soft gradient is allowed. The background may be slightly warm, slightly neutral, or softly color-tinted, but must remain restrained, elegant, and commercial. Do not use scenery, props, environmental context, or heavy gradients.",
+
+    "lightingRules": "Use soft but directional studio lighting with realistic material response. Products may receive slightly stronger highlights for a premium campaign feel. Keep shadows soft, clean, and believable. Avoid dramatic contrast and avoid theatrical lighting.",
+
+    "depthFocusRules": "Use subtle depth of field. Foreground may be slightly sharper and background slightly softer, but the scene must remain readable and commercially clear.",
+
+    "accentRules": "Accents are small supporting environmental elements. They are not decoration, not a composition system, not a frame, and not a pattern. They must remain secondary to the products at all times. Use very few accents. If accents are larger, use fewer of them. Keep the scene clean. Accents must stay very close to the package, placed near it, behind it, beside it, or occasionally slightly in front of it. They must not form a circle, wreath, border, or evenly distributed arrangement. They must not define the composition. They should feel lightly present in the same physical space as the package, with subtle depth and natural placement. Accents must be photorealistic, never vector, never clipart, never graphic decoration.",
+
+    "negativeRules": "No symmetry. No circular arrangement. No decorative frame. No wreath behavior. No pattern layout. No vector look. No illustration style. No clipart accents. No background decoration. No random full-scene distribution of accents.",
+
+    "postproductionRules": "The image must remain easy to refine later. Keep object separation clean. Avoid heavy distortion and avoid complex merging. The result should support easy product replacement, cleanup, relighting, and compositing polish.",
+
+    "finalFeelRules": "The final result should feel like a premium campaign visual: dynamic but controlled, photorealistic, commercially polished, and intentionally art directed."
+  },
+
+  "dynamicFields": [
+    {
+      "key": "accentTheme",
+      "label": "Accent Theme",
+      "type": "textarea",
+      "placeholder": "Example: subtelne liście i naturalne akcenty jesienne",
+      "aiEnabled": true,
+      "aiExpansion": {
+        "model": "gpt-4.1-mini",
+        "instruction": "You are expanding a single field for a premium package visualization prompt system.\n\nTASK:\nExpand only the ACCENT THEME field.\n\nGOAL:\nCreate a concise English description for minimal photorealistic supporting accents placed very close to the package.\n\nRULES:\n- Return only plain text\n- Write the output in English only\n- Do not use headings\n- Do not use bullet points\n- Focus only on the accent style\n- Accents must be photorealistic, not vector, not clipart, not illustration\n- Accents must remain minimal and secondary to the products\n- Accents must stay near the package, not across the whole frame\n- Accents must not form a circle, frame, wreath, or pattern\n- If accents are larger, imply fewer of them\n- Use natural material language, realistic textures, subtle imperfections, and soft studio lighting response\n- Keep the writing concise, controlled, and commercially useful\n- Do not rewrite the whole scene\n\nOUTPUT:\nReturn only the final ACCENT STYLE text in English.",
+        "includeFieldValue": true,
+        "contextFields": []
+      }
+    }
+  ],
+
+  "specialParams": [
+    {
+      "key": "ratio",
+      "label": "Ratio",
+      "type": "select",
+      "default": "3:4",
+      "options": [
+        {
+          "value": "1:1",
+          "label": "1:1",
+          "prompt": "composition optimized for a square frame, balanced central staging, compact commercial layout, controlled negative space around the full composition, all elements safely contained"
+        },
+        {
+          "value": "3:4",
+          "label": "3:4",
+          "prompt": "composition optimized for a vertical 3:4 frame, slightly taller than wide, central composition, clean negative space, all elements safely contained inside the frame"
+        },
+        {
+          "value": "4:5",
+          "label": "4:5",
+          "prompt": "composition optimized for a premium vertical 4:5 frame, strong editorial balance, central staging, controlled vertical emphasis, clean negative space around all elements"
+        },
+        {
+          "value": "9:16",
+          "label": "9:16",
+          "prompt": "composition optimized for a tall vertical frame, strong top-to-bottom flow, central product focus, controlled spacing, all elements safely contained with clean margins"
+        },
+        {
+          "value": "16:9",
+          "label": "16:9",
+          "prompt": "composition optimized for a wide horizontal frame, broader lateral spread, balanced central package focus, controlled spacing, no element reaching the frame edges"
+        }
+      ]
+    },
+    {
+      "key": "boxMode",
+      "label": "Box Mode",
+      "type": "select",
+      "default": "floating",
+      "options": [
+        {
+          "value": "grounded",
+          "label": "Grounded",
+          "prompt": "the box is grounded and stable, acting as the anchor of the composition while preserving a premium campaign feel"
+        },
+        {
+          "value": "floating",
+          "label": "Floating",
+          "prompt": "the box is floating in the air, slightly tilted, acting as the central anchor of the composition"
+        }
+      ]
+    },
+    {
+      "key": "lidMode",
+      "label": "Lid",
+      "type": "select",
+      "default": "absent",
+      "options": [
+        {
+          "value": "absent",
+          "label": "Absent",
+          "prompt": "lid mode is absent: do not show the lid, do not generate the lid, and do not suggest any detached top element"
+        },
+        {
+          "value": "present",
+          "label": "Present",
+          "prompt": "lid mode is present: include the lid as part of the same exact package, matching structure, material, proportions, and physical logic"
+        }
+      ]
+    },
+    {
+      "key": "itemScaleBoost",
+      "label": "Item Scale Boost",
+      "type": "select",
+      "default": "10-15%",
+      "options": [
+        {
+          "value": "0%",
+          "label": "0%",
+          "prompt": "keep items at a natural scale relationship to the package"
+        },
+        {
+          "value": "10-15%",
+          "label": "10–15%",
+          "prompt": "visually enlarge items by approximately 10–15 percent relative to the package"
+        },
+        {
+          "value": "15-20%",
+          "label": "15–20%",
+          "prompt": "visually enlarge items by approximately 15–20 percent relative to the package for a stronger campaign hierarchy"
+        }
+      ]
+    },
+    {
+      "key": "accentSystemEnabled",
+      "label": "Accent System",
+      "type": "checkbox",
+      "default": true,
+      "checkboxLabel": "Include minimal photorealistic accents",
+      "true": {
+        "prompt": "include a minimal photorealistic supporting accent layer near the package"
+      },
+      "false": {
+        "prompt": "do not include any accent elements"
+      }
+    }
+  ],
+
+  "promptAssembly": {
+    "template": "ENGINE INTENT:\n\n{{ENGINE_INTENT}}\n\n---\n\nPACKAGE RULES:\n\n{{PACKAGE_RULES}}\n\n{{BOX_MODE_RULES}}\n\n---\n\nLID RULES:\n\n{{LID_RULES}}\n\n{{LID_MODE_RULES}}\n\n---\n\nITEM RULES:\n\n{{ITEM_RULES}}\n\n---\n\nITEM SCALE:\n\n{{ITEM_SCALE_RULES}}\n\n---\n\nCOMPOSITION RULES:\n\n{{COMPOSITION_RULES}}\n\n---\n\nFRAME SAFETY:\n\n{{FRAME_SAFETY_RULES}}\n\n---\n\nBACKGROUND RULES:\n\n{{BACKGROUND_RULES}}\n\n---\n\nLIGHTING RULES:\n\n{{LIGHTING_RULES}}\n\n---\n\nDEPTH & FOCUS:\n\n{{DEPTH_FOCUS_RULES}}\n\n---\n\nACCENT SYSTEM:\n\n{{ACCENT_SYSTEM_RULES}}\n\n{{ACCENT_RULES}}\n\n{{ACCENT_THEME_BLOCK}}\n\n---\n\nNEGATIVE RULES:\n\n{{NEGATIVE_RULES}}\n\n---\n\nPOST-PRODUCTION:\n\n{{POSTPRODUCTION_RULES}}\n\n---\n\nFINAL FEEL:\n\n{{FINAL_FEEL_RULES}}\n\n---\n\nFORMAT:\n\n{{ASPECT_RULES}}"
+  },
+
+  "tokenMap": {
+    "{{ENGINE_INTENT}}": {
+      "source": "engine",
+      "key": "engineIntent"
+    },
+    "{{PACKAGE_RULES}}": {
+      "source": "engine",
+      "key": "packageRules"
+    },
+    "{{LID_RULES}}": {
+      "source": "engine",
+      "key": "lidRules"
+    },
+    "{{ITEM_RULES}}": {
+      "source": "engine",
+      "key": "itemRules"
+    },
+    "{{ITEM_SCALE_RULES}}": {
+      "source": "param",
+      "key": "itemScaleBoost",
+      "mode": "prompt"
+    },
+    "{{COMPOSITION_RULES}}": {
+      "source": "engine",
+      "key": "compositionRules"
+    },
+    "{{FRAME_SAFETY_RULES}}": {
+      "source": "engine",
+      "key": "frameSafetyRules"
+    },
+    "{{BACKGROUND_RULES}}": {
+      "source": "engine",
+      "key": "backgroundRules"
+    },
+    "{{LIGHTING_RULES}}": {
+      "source": "engine",
+      "key": "lightingRules"
+    },
+    "{{DEPTH_FOCUS_RULES}}": {
+      "source": "engine",
+      "key": "depthFocusRules"
+    },
+    "{{ACCENT_SYSTEM_RULES}}": {
+      "source": "param",
+      "key": "accentSystemEnabled",
+      "mode": "prompt"
+    },
+    "{{ACCENT_RULES}}": {
+      "source": "engine",
+      "key": "accentRules"
+    },
+    "{{ACCENT_THEME_BLOCK}}": {
+      "source": "field",
+      "key": "accentTheme",
+      "fallback": "Accent style not provided."
+    },
+    "{{NEGATIVE_RULES}}": {
+      "source": "engine",
+      "key": "negativeRules"
+    },
+    "{{POSTPRODUCTION_RULES}}": {
+      "source": "engine",
+      "key": "postproductionRules"
+    },
+    "{{FINAL_FEEL_RULES}}": {
+      "source": "engine",
+      "key": "finalFeelRules"
+    },
+    "{{ASPECT_RULES}}": {
+      "source": "param",
+      "key": "ratio",
+      "mode": "prompt"
+    },
+    "{{BOX_MODE_RULES}}": {
+      "source": "param",
+      "key": "boxMode",
+      "mode": "prompt"
+    },
+    "{{LID_MODE_RULES}}": {
+      "source": "param",
+      "key": "lidMode",
+      "mode": "prompt"
+    }
+  }
+}

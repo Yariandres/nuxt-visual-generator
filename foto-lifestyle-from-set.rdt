@@ -1,0 +1,298 @@
+{
+  "id": "lifestyle_from_set_engine",
+  "label": "lifestyle_from_set_engine",
+  "version": "1.0.0",
+
+  "engineBlocks": {
+    "engineIntent": "Create a realistic lifestyle photograph based on a chaotic set of uploaded reference images showing branded items, products, accessories, packaging, or supporting elements. The result must feel like a natural real-world photo that someone casually took, not a polished studio packshot and not a stylized CGI render.",
+
+    "referencePriorityRules": "Always treat the uploaded images as the visual ground truth. Preserve the identity of the real items from the references. If a high-quality logo is provided, treat it as exact ground truth for symbol shape, branding clarity, and brand rendering accuracy. Do not redesign, simplify, reinterpret, or invent branding.",
+
+    "objectRecognitionRules": "Always attempt to identify at least one real object from the uploaded set, and preferably identify as many objects as possible. Use recognizable product categories and visual cues such as notebook, pen, socks, bag, card, folder, bottle, box, apparel, stationery, packaging, and printed matter to infer object function and expected real-world scale.",
+
+    "scaleRules": "Estimate relative scale between all recognized objects using reference image comparison, overlap cues, edge relationships, typical object dimensions, and brand-item context. Maintain believable real-world proportions at all times. Never let small items become unrealistically large in the scene, and never let large items become unrealistically small. If scale is uncertain, choose the most conservative real-world interpretation.",
+
+    "selectionRules": "Respect the selected object usage mode exactly. If the mode requires all objects, include all identifiable items once each and never duplicate any item. If the mode allows a selective composition, build a logical subset from the uploaded references while still preserving believable product variety and brand consistency. Any object that is used must appear only once. Never duplicate the same real item.",
+
+    "compositionRules": "Build a believable lifestyle scene rather than a catalog arrangement. The image should feel like a naturally observed moment. Use asymmetry, natural spacing, partial overlap, imperfect placement, and believable object hierarchy. Prefer one or two hero objects with secondary supporting items. Avoid perfect symmetry, avoid evenly spaced layouts, avoid showroom arrangement, and avoid artificial display logic unless explicitly requested by the theme.",
+
+    "cameraRules": "The camera should feel natural and casually human. Use believable photography angles such as overhead, slight top-down, table-edge perspective, close crop, off-axis framing, hand-level snapshot, or quick environmental capture. Mild randomness is allowed in framing. Slight tilt, imperfect centering, accidental crop behavior, and non-heroic angles are acceptable if the scene remains readable and commercially useful.",
+
+    "environmentRules": "Place the items in a believable lifestyle context that matches the selected theme. The environment may suggest home, office, desk, casual daily life, travel, or another grounded use context. All surfaces, support points, spacing, and object placement must feel physically real. Objects must rest on believable surfaces and obey gravity. No floating items and no impossible stacking.",
+
+    "peopleRules": "Respect the selected people mode exactly. If people are disabled, do not show people, faces, hands, or body fragments. If people are enabled, they must remain limited and secondary: either blurred background presence, hands holding or touching the package, or a cropped torso-level human presence framed below the nose. Never show a full clear face. Never make a person the main subject over the products.",
+
+    "lightingRules": "Use realistic lifestyle lighting rather than artificial product spotlighting. The light should feel naturally present in the environment: daylight, soft window light, indoor ambient light, mixed natural light, or subtle practical lighting depending on the selected lighting field. Preserve believable shadows, contact shadows, and soft environmental bounce. Avoid theatrical high-contrast lighting unless explicitly requested.",
+
+    "materialRules": "Preserve the material identity of all objects from the references. Paper must look like paper, fabric like fabric, plastic like plastic, coated print like coated print, and matte surfaces like matte surfaces. Do not reinterpret materials. Do not add luxury textures that are not visible in the references.",
+
+    "depthRules": "Use realistic photographic depth behavior. Most scenes should remain readable, with optional subtle foreground or background softness. If people appear, they may be softly blurred when placed in the background. Do not overuse blur and do not create artificial cinematic exaggeration that hides the products.",
+
+    "negativeRules": "No object duplication. No invented products. No incorrect branding. No redesign of real items. No unrealistic scale jumps. No floating objects. No impossible gravity. No vector look. No illustration style. No clean CGI aesthetic. No showroom-perfect arrangement. No full visible face. No person dominating the frame. No fake premium staging that ignores the uploaded references.",
+
+    "finalFeelRules": "The final image should feel like an authentic, believable, branded lifestyle photograph created from real reference items. It should feel grounded, natural, photographic, commercially useful, and faithful to the uploaded references while still forming a coherent visual story."
+  },
+
+  "dynamicFields": [
+    {
+      "key": "theme",
+      "label": "Theme",
+      "type": "textarea",
+      "placeholder": "Example: casual welcome pack on a real office desk during a normal workday",
+      "aiEnabled": true,
+      "aiExpansion": {
+        "model": "gpt-4.1-mini",
+        "instruction": "You are expanding a single field for a realistic lifestyle product photography prompt system.\n\nTASK:\nExpand only the THEME field.\n\nGOAL:\nCreate a concise English description of the scene context and situation.\n\nRULES:\n- Return only plain text\n- Write in English only\n- Do not use headings\n- Do not use bullet points\n- Focus only on the real-world context, environment, and situation\n- Keep the result grounded and believable\n- Avoid fantasy, surrealism, luxury exaggeration, and visual poetry\n- The result must fit a natural lifestyle photograph built from uploaded real product references\n- Keep it concise, clear, and commercially usable\n\nOUTPUT:\nReturn only the final THEME text in English.",
+        "includeFieldValue": true,
+        "contextFields": []
+      }
+    },
+    {
+      "key": "mood",
+      "label": "Mood",
+      "type": "textarea",
+      "placeholder": "Example: relaxed, fresh, modern, everyday and casual",
+      "aiEnabled": true,
+      "aiExpansion": {
+        "model": "gpt-4.1-mini",
+        "instruction": "You are expanding a single field for a realistic lifestyle product photography prompt system.\n\nTASK:\nExpand only the MOOD field.\n\nGOAL:\nCreate a concise English description of the emotional and visual mood.\n\nRULES:\n- Return only plain text\n- Write in English only\n- Do not use headings\n- Do not use bullet points\n- Focus only on emotional tone and visual atmosphere\n- Keep it grounded, natural, and photographic\n- Avoid fantasy wording, cinematic exaggeration, and abstract art language\n- The result must support a believable real-world lifestyle image\n- Keep it concise and commercially useful\n\nOUTPUT:\nReturn only the final MOOD text in English.",
+        "includeFieldValue": true,
+        "contextFields": []
+      }
+    },
+    {
+      "key": "lighting",
+      "label": "Lighting",
+      "type": "textarea",
+      "placeholder": "Example: soft daylight from the side with natural room bounce",
+      "aiEnabled": true,
+      "aiExpansion": {
+        "model": "gpt-4.1-mini",
+        "instruction": "You are expanding a single field for a realistic lifestyle product photography prompt system.\n\nTASK:\nExpand only the LIGHTING field.\n\nGOAL:\nCreate a concise English description of believable photographic lighting.\n\nRULES:\n- Return only plain text\n- Write in English only\n- Do not use headings\n- Do not use bullet points\n- Focus only on realistic lifestyle lighting\n- Keep it natural, physical, and believable\n- Avoid theatrical, sci-fi, fantasy, or overly cinematic language unless the user explicitly suggests it\n- The result must support a natural photo made from real product references\n- Keep it concise and practically useful\n\nOUTPUT:\nReturn only the final LIGHTING text in English.",
+        "includeFieldValue": true,
+        "contextFields": []
+      }
+    }
+  ],
+
+  "specialParams": [
+    {
+      "key": "ratio",
+      "label": "Ratio",
+      "type": "select",
+      "default": "4:5",
+      "options": [
+        {
+          "value": "1:1",
+          "label": "1:1",
+          "prompt": "composition optimized for a square frame with natural balance, believable spacing, and casual photographic framing"
+        },
+        {
+          "value": "3:4",
+          "label": "3:4",
+          "prompt": "composition optimized for a vertical 3:4 frame with natural object hierarchy and realistic breathing room"
+        },
+        {
+          "value": "4:5",
+          "label": "4:5",
+          "prompt": "composition optimized for a vertical 4:5 frame with an editorial lifestyle feel and realistic photographic spacing"
+        },
+        {
+          "value": "9:16",
+          "label": "9:16",
+          "prompt": "composition optimized for a tall vertical frame with natural upward or downward flow and believable mobile-photo framing"
+        },
+        {
+          "value": "16:9",
+          "label": "16:9",
+          "prompt": "composition optimized for a wide horizontal frame with believable environmental spread and relaxed photographic balance"
+        }
+      ]
+    },
+    {
+      "key": "peopleMode",
+      "label": "People",
+      "type": "select",
+      "default": "none",
+      "options": [
+        {
+          "value": "none",
+          "label": "None",
+          "prompt": "do not show any people, faces, hands, or body parts"
+        },
+        {
+          "value": "hands",
+          "label": "Hands",
+          "prompt": "people may appear only as hands naturally holding, touching, carrying, or arranging the products"
+        },
+        {
+          "value": "background",
+          "label": "Background",
+          "prompt": "people may appear only as subtle blurred background presence and must remain secondary to the products"
+        },
+        {
+          "value": "cropped_person",
+          "label": "Cropped Person",
+          "prompt": "a person may appear only as a cropped torso-level presence or close framing below the nose while holding or interacting with the products, never with a full visible face"
+        }
+      ]
+    },
+    {
+      "key": "objectUsageMode",
+      "label": "Object Usage",
+      "type": "select",
+      "default": "selective",
+      "options": [
+        {
+          "value": "all",
+          "label": "All",
+          "prompt": "use all identifiable uploaded items exactly once each with no duplication"
+        },
+        {
+          "value": "selective",
+          "label": "Selective",
+          "prompt": "build a logical subset from the uploaded items, using only the items that strengthen the scene, but never duplicate any real item"
+        }
+      ]
+    },
+    {
+      "key": "cameraStyle",
+      "label": "Camera Style",
+      "type": "select",
+      "default": "random",
+      "options": [
+        {
+          "value": "clean",
+          "label": "Clean",
+          "prompt": "use a natural but relatively controlled photographic angle with readable framing and mild imperfection"
+        },
+        {
+          "value": "random",
+          "label": "Random",
+          "prompt": "use a believable casual snapshot angle with mild randomness, natural imperfection, and human framing behavior"
+        },
+        {
+          "value": "dynamic",
+          "label": "Dynamic",
+          "prompt": "use a more energetic but still believable photographic angle with stronger tilt, closer crop, or more active composition while preserving realism"
+        }
+      ]
+    },
+    {
+      "key": "logoProvided",
+      "label": "Logo Provided",
+      "type": "checkbox",
+      "default": true,
+      "checkboxLabel": "High-quality logo is included in the references",
+      "true": {
+        "prompt": "a high-quality logo reference is provided and must be treated as exact branding ground truth"
+      },
+      "false": {
+        "prompt": "no dedicated logo file is provided, so branding must be inferred only from the uploaded product references without redesign"
+      }
+    }
+  ],
+
+  "promptAssembly": {
+    "template": "ENGINE INTENT:\n\n{{ENGINE_INTENT}}\n\n---\n\nREFERENCE PRIORITY:\n\n{{REFERENCE_PRIORITY_RULES}}\n\n{{LOGO_PROVIDED_RULES}}\n\n---\n\nOBJECT RECOGNITION:\n\n{{OBJECT_RECOGNITION_RULES}}\n\n---\n\nSCALE LOGIC:\n\n{{SCALE_RULES}}\n\n---\n\nOBJECT SELECTION:\n\n{{SELECTION_RULES}}\n\n{{OBJECT_USAGE_MODE_RULES}}\n\n---\n\nSCENE THEME:\n\n{{THEME_BLOCK}}\n\n---\n\nMOOD:\n\n{{MOOD_BLOCK}}\n\n---\n\nCAMERA & FRAMING:\n\n{{CAMERA_RULES}}\n\n{{CAMERA_STYLE_RULES}}\n\n---\n\nENVIRONMENT:\n\n{{ENVIRONMENT_RULES}}\n\n---\n\nPEOPLE:\n\n{{PEOPLE_RULES}}\n\n{{PEOPLE_MODE_RULES}}\n\n---\n\nCOMPOSITION:\n\n{{COMPOSITION_RULES}}\n\n---\n\nLIGHTING:\n\n{{LIGHTING_RULES}}\n\n{{LIGHTING_BLOCK}}\n\n---\n\nMATERIALS:\n\n{{MATERIAL_RULES}}\n\n---\n\nDEPTH & FOCUS:\n\n{{DEPTH_RULES}}\n\n---\n\nNEGATIVE RULES:\n\n{{NEGATIVE_RULES}}\n\n---\n\nFINAL FEEL:\n\n{{FINAL_FEEL_RULES}}\n\n---\n\nFORMAT:\n\n{{ASPECT_RULES}}"
+  },
+
+  "tokenMap": {
+    "{{ENGINE_INTENT}}": {
+      "source": "engine",
+      "key": "engineIntent"
+    },
+    "{{REFERENCE_PRIORITY_RULES}}": {
+      "source": "engine",
+      "key": "referencePriorityRules"
+    },
+    "{{OBJECT_RECOGNITION_RULES}}": {
+      "source": "engine",
+      "key": "objectRecognitionRules"
+    },
+    "{{SCALE_RULES}}": {
+      "source": "engine",
+      "key": "scaleRules"
+    },
+    "{{SELECTION_RULES}}": {
+      "source": "engine",
+      "key": "selectionRules"
+    },
+    "{{COMPOSITION_RULES}}": {
+      "source": "engine",
+      "key": "compositionRules"
+    },
+    "{{CAMERA_RULES}}": {
+      "source": "engine",
+      "key": "cameraRules"
+    },
+    "{{ENVIRONMENT_RULES}}": {
+      "source": "engine",
+      "key": "environmentRules"
+    },
+    "{{PEOPLE_RULES}}": {
+      "source": "engine",
+      "key": "peopleRules"
+    },
+    "{{LIGHTING_RULES}}": {
+      "source": "engine",
+      "key": "lightingRules"
+    },
+    "{{MATERIAL_RULES}}": {
+      "source": "engine",
+      "key": "materialRules"
+    },
+    "{{DEPTH_RULES}}": {
+      "source": "engine",
+      "key": "depthRules"
+    },
+    "{{NEGATIVE_RULES}}": {
+      "source": "engine",
+      "key": "negativeRules"
+    },
+    "{{FINAL_FEEL_RULES}}": {
+      "source": "engine",
+      "key": "finalFeelRules"
+    },
+    "{{THEME_BLOCK}}": {
+      "source": "field",
+      "key": "theme",
+      "fallback": "Natural branded lifestyle use context not provided."
+    },
+    "{{MOOD_BLOCK}}": {
+      "source": "field",
+      "key": "mood",
+      "fallback": "Natural and grounded lifestyle mood not provided."
+    },
+    "{{LIGHTING_BLOCK}}": {
+      "source": "field",
+      "key": "lighting",
+      "fallback": "Use believable natural lifestyle lighting."
+    },
+    "{{ASPECT_RULES}}": {
+      "source": "param",
+      "key": "ratio",
+      "mode": "prompt"
+    },
+    "{{PEOPLE_MODE_RULES}}": {
+      "source": "param",
+      "key": "peopleMode",
+      "mode": "prompt"
+    },
+    "{{OBJECT_USAGE_MODE_RULES}}": {
+      "source": "param",
+      "key": "objectUsageMode",
+      "mode": "prompt"
+    },
+    "{{CAMERA_STYLE_RULES}}": {
+      "source": "param",
+      "key": "cameraStyle",
+      "mode": "prompt"
+    },
+    "{{LOGO_PROVIDED_RULES}}": {
+      "source": "param",
+      "key": "logoProvided",
+      "mode": "prompt"
+    }
+  }
+}

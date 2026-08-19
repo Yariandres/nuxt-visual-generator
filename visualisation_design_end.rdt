@@ -1,0 +1,242 @@
+{
+  "id": "visualisation_design_end",
+  "label": "visualisation_design_end",
+  "version": "2.0.0",
+
+  "coreFiles": {
+    "subjectLock": "engine/subject-lock.core",
+    "style": "engine/style.core",
+    "sceneStructure": "engine/scene-structure.core",
+    "sceneLogic": "engine/scene-logic.core",
+    "interactionRules": "engine/interaction-rules.core",
+    "materialQuality": "engine/material-quality.core",
+    "depthBehavior": "engine/depth-behavior.core",
+    "composition": "engine/composition.core",
+    "negativeConstraints": "engine/negative-constraints.core",
+    "outputStyle": "engine/output-style.core"
+  },
+
+  "dynamicFields": [
+    {
+      "key": "theme",
+      "label": "Theme",
+      "type": "textarea",
+      "placeholder": "Example: spring onboarding welcome pack with floral accents",
+      "aiEnabled": true,
+      "aiExpansion": {
+        "model": "gpt-4.1-mini",
+        "instruction": "You are expanding a single field for a premium product visualization prompt system.\n\nTASK:\nExpand only the THEME field.\n\nGOAL:\nCreate a concise but descriptive visual scene direction for a high-end commercial / editorial product visualization.\n\nRULES:\n- Return only plain text\n- Do not use headings\n- Do not use bullet points\n- Do not mention other sections like mood, lighting, or color palette unless absolutely necessary for theme clarity\n- Keep it visually intentional, premium, controlled, and art directed\n- Avoid generic filler language\n- Avoid randomness\n\nOUTPUT:\nReturn only the final THEME text.",
+        "includeFieldValue": true,
+        "contextFields": ["mood", "colorPalette", "lighting"]
+      }
+    },
+    {
+      "key": "mood",
+      "label": "Mood / Climate",
+      "type": "textarea",
+      "placeholder": "Example: soft spring atmosphere, airy, elegant, optimistic, premium but light",
+      "aiEnabled": true,
+      "aiExpansion": {
+        "model": "gpt-4.1-mini",
+        "instruction": "You are expanding a single field for a premium product visualization prompt system.\n\nTASK:\nExpand only the MOOD / CLIMATE field.\n\nGOAL:\nDefine the emotional atmosphere, tone, and overall sensory feeling of the scene for a high-end commercial / editorial product visualization.\n\nRULES:\n- Return only plain text\n- Do not use headings\n- Do not use bullet points\n- Focus on atmosphere, tone, emotional quality, and scene feeling\n- Do not describe technical lighting setup\n- Keep the writing concise, intentional, premium, and visually aware\n- Avoid generic filler language\n- Avoid randomness\n\nOUTPUT:\nReturn only the final MOOD / CLIMATE text.",
+        "includeFieldValue": true,
+        "contextFields": ["theme", "colorPalette", "lighting"]
+      }
+    },
+    {
+      "key": "lighting",
+      "label": "Lighting Style",
+      "type": "textarea",
+      "placeholder": "Example: soft diffused key light, subtle rim light, gentle shadows, editorial product lighting",
+      "aiEnabled": true,
+      "aiExpansion": {
+        "model": "gpt-4.1-mini",
+        "instruction": "You are expanding a single field for a premium product visualization prompt system.\n\nTASK:\nExpand only the LIGHTING STYLE field.\n\nGOAL:\nDescribe the lighting direction, behavior, softness, contrast, and overall studio / editorial light character for a high-end product visualization.\n\nRULES:\n- Return only plain text\n- Do not use headings\n- Do not use bullet points\n- Focus on light behavior, quality, direction, shadow softness, and highlight treatment\n- Do not rewrite the whole scene\n- Keep it concise, premium, intentional, and production-aware\n- Avoid generic filler language\n- Avoid randomness\n\nOUTPUT:\nReturn only the final LIGHTING STYLE text.",
+        "includeFieldValue": true,
+        "contextFields": ["theme", "mood", "colorPalette"]
+      }
+    },
+    {
+      "key": "colorPalette",
+      "label": "Color Palette / Color Direction",
+      "type": "textarea",
+      "placeholder": "Example: pale ivory, soft sage, muted blush, gentle lavender accents",
+      "aiEnabled": true,
+      "promptBlock": {
+        "title": "COLOR PALETTE / COLOR DIRECTION",
+        "instructions": "Use this palette as a directional guide for the environment, accents, and lighting mood. Do not recolor the locked product itself unless naturally affected by scene lighting."
+      },
+      "aiExpansion": {
+        "model": "gpt-4.1-mini",
+        "instruction": "You are expanding a single field for a premium product visualization prompt system.\n\nTASK:\nExpand only the COLOR PALETTE / COLOR DIRECTION field.\n\nGOAL:\nDefine a concise but intentional color direction for the environment, accents, and atmosphere of a high-end commercial / editorial product visualization.\n\nRULES:\n- Return only plain text\n- Do not use headings\n- Do not use bullet points\n- Focus on palette logic, harmony, contrast level, and visual direction\n- Do not rewrite theme or lighting in full\n- Keep it concise, premium, elegant, and art directed\n- Avoid generic filler language\n- Avoid randomness\n\nOUTPUT:\nReturn only the final COLOR PALETTE / COLOR DIRECTION text.",
+        "includeFieldValue": true,
+        "contextFields": ["theme", "mood", "lighting"]
+      }
+    }
+  ],
+
+  "specialParams": [
+    {
+      "key": "ratio",
+      "label": "Ratio",
+      "type": "select",
+      "default": "1:1",
+      "options": [
+        {
+          "value": "1:1",
+          "label": "1:1",
+          "prompt": "composition optimized for a square frame, balanced central staging, compact and controlled spatial distribution, equal visual weight across both axes, clean negative space around the product, no excessive horizontal or vertical stretch"
+        },
+        {
+          "value": "9:16",
+          "label": "9:16",
+          "prompt": "composition optimized for a tall vertical frame, strong top-to-bottom visual flow, layered staging stacked vertically, elegant use of height, narrow side framing, product positioned for strong central focus with breathable space above and below"
+        },
+        {
+          "value": "16:9",
+          "label": "16:9",
+          "prompt": "composition optimized for an wide cinematic frame, broad lateral spread, elongated horizontal staging, product remains dominant while the scene expands left and right with controlled negative space, foreground and background elements can travel wider across the frame"
+        },
+        {
+          "value": "3:4",
+          "label": "3:4",
+          "prompt": "composition optimized for a vertical editorial frame, slightly taller than wide, controlled vertical emphasis, compact but elegant staging, product remains central with supportive elements distributed above and below"
+        },
+        {
+          "value": "4:3",
+          "label": "4:3",
+          "prompt": "composition optimized for a classic horizontal frame, balanced width with moderate height, stable and composed scene design, product remains dominant while supporting elements are distributed evenly without overly wide cinematic spread"
+        },
+        {
+          "value": "3:2",
+          "label": "3:2",
+          "prompt": "composition optimized for a photographic horizontal frame, comfortable side-to-side staging, clean editorial balance, product anchored clearly in the composition with enough lateral room for framing elements and atmospheric depth"
+        },
+        {
+          "value": "2:3",
+          "label": "2:3",
+          "prompt": "composition optimized for a photographic vertical frame, refined upward and downward flow, product kept prominent in the middle zone, supporting layers designed to enhance height without overcrowding the frame"
+        },
+        {
+          "value": "5:4",
+          "label": "5:4",
+          "prompt": "composition optimized for a slightly horizontal studio frame, dense and premium composition, stable geometry, moderate side breathing room, product remains visually dominant with a clean structured set around it"
+        },
+        {
+          "value": "4:5",
+          "label": "4:5",
+          "prompt": "composition optimized for a premium social vertical frame, elegant vertical hierarchy, product slightly below or around center for balanced negative space, strong editorial staging from top to bottom, no unnecessary width"
+        },
+        {
+          "value": "21:9",
+          "label": "21:9",
+          "prompt": "composition optimized for a panoramic cinematic frame, very wide lateral composition, strong horizontal spread, controlled empty space on both sides, product remains the focal anchor while the environment supports a dramatic wide-screen stage feeling"
+        },
+        {
+          "value": "4:1",
+          "label": "4:1",
+          "prompt": "composition optimized for an extremely wide banner-like frame, very low vertical height, composition stretched horizontally with disciplined placement, product remains a strong focal anchor while supporting elements extend laterally in a controlled way"
+        },
+        {
+          "value": "1:4",
+          "label": "1:4",
+          "prompt": "composition optimized for an extremely tall narrow frame, vertical stacking becomes the main compositional device, very restrained side elements, product emphasis must stay clear despite the narrow width, dramatic top-to-bottom flow"
+        },
+        {
+          "value": "8:1",
+          "label": "8:1",
+          "prompt": "composition optimized for a hyper-wide strip format, composition behaves like a cinematic ribbon, strong lateral motion and spacing, minimal vertical stacking, product remains dominant but the scene must read clearly across a very elongated horizontal canvas"
+        },
+        {
+          "value": "1:8",
+          "label": "1:8",
+          "prompt": "composition optimized for a hyper-tall strip format, composition behaves like a vertical ribbon, strong top-to-bottom staging, very limited side spread, product remains dominant while layers are arranged as a tall elegant sequence"
+        }
+      ]
+    },
+    {
+      "key": "includeColorBlock",
+      "label": "Color Palette Section",
+      "type": "checkbox",
+      "default": true,
+      "checkboxLabel": "Include color palette section in final output",
+      "true": {
+        "prompt": "show"
+      },
+      "false": {
+        "prompt": "hide"
+      }
+    }
+  ],
+
+  "promptAssembly": {
+    "template": "{{SUBJECT_LOCK}}\n\n---\n\nSTYLE:\n\n{{STYLE}}\n\n---\n\nTHEME:\n\n{{THEME}}\n\n---\n\nMOOD / CLIMATE:\n\n{{MOOD}}\n\n{{COLOR_BLOCK}}\n\n---\n\nLIGHTING STYLE:\n\n{{LIGHTING}}\n\n---\n\nSCENE STRUCTURE:\n\n{{SCENE_STRUCTURE}}\n\n---\n\nSCENE LOGIC:\n\n{{SCENE_LOGIC}}\n\n---\n\nINTERACTION RULES:\n\n{{INTERACTION_RULES}}\n\n---\n\nMATERIAL QUALITY:\n\n{{MATERIAL_QUALITY}}\n\n---\n\nDEPTH BEHAVIOR:\n\n{{DEPTH_BEHAVIOR}}\n\n---\n\nCOMPOSITION:\n\n{{COMPOSITION}}\n\n{{ASPECT_RULES}}\n\n---\n\nNEGATIVE CONSTRAINTS:\n\n{{NEGATIVE_CONSTRAINTS}}\n\n---\n\nOUTPUT STYLE:\n\n{{OUTPUT_STYLE}}"
+  },
+
+  "tokenMap": {
+    "{{SUBJECT_LOCK}}": {
+      "source": "core",
+      "key": "subjectLock"
+    },
+    "{{STYLE}}": {
+      "source": "core",
+      "key": "style"
+    },
+    "{{THEME}}": {
+      "source": "field",
+      "key": "theme",
+      "fallback": "[INSERT THEME HERE]"
+    },
+    "{{MOOD}}": {
+      "source": "field",
+      "key": "mood",
+      "fallback": "[INSERT MOOD / CLIMATE HERE]"
+    },
+    "{{LIGHTING}}": {
+      "source": "field",
+      "key": "lighting",
+      "fallback": "[INSERT LIGHTING STYLE HERE]"
+    },
+    "{{COLOR_BLOCK}}": {
+      "source": "computed",
+      "key": "colorBlock"
+    },
+    "{{SCENE_STRUCTURE}}": {
+      "source": "core",
+      "key": "sceneStructure"
+    },
+    "{{SCENE_LOGIC}}": {
+      "source": "core",
+      "key": "sceneLogic"
+    },
+    "{{INTERACTION_RULES}}": {
+      "source": "core",
+      "key": "interactionRules"
+    },
+    "{{MATERIAL_QUALITY}}": {
+      "source": "core",
+      "key": "materialQuality"
+    },
+    "{{DEPTH_BEHAVIOR}}": {
+      "source": "core",
+      "key": "depthBehavior"
+    },
+    "{{COMPOSITION}}": {
+      "source": "core",
+      "key": "composition"
+    },
+    "{{ASPECT_RULES}}": {
+      "source": "param",
+      "key": "ratio",
+      "mode": "prompt"
+    },
+    "{{NEGATIVE_CONSTRAINTS}}": {
+      "source": "core",
+      "key": "negativeConstraints"
+    },
+    "{{OUTPUT_STYLE}}": {
+      "source": "core",
+      "key": "outputStyle"
+    }
+  }
+}
