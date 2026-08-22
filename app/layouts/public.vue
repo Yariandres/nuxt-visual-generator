@@ -10,14 +10,6 @@ const user = useSupabaseUser()
           <NuxtLink to="/" class="text-lg font-bold text-highlighted">
             Onward
           </NuxtLink>
-          <nav class="hidden items-center gap-4 sm:flex">
-            <NuxtLink to="/blog" class="text-sm text-muted hover:text-default">
-              Blog
-            </NuxtLink>
-            <NuxtLink to="/contact" class="text-sm text-muted hover:text-default">
-              Contact
-            </NuxtLink>
-          </nav>
         </div>
 
         <div class="flex items-center gap-3">
@@ -56,9 +48,6 @@ const user = useSupabaseUser()
         <nav class="flex items-center gap-4">
           <NuxtLink to="/privacy" class="text-xs text-dimmed hover:text-muted">
             Privacy
-          </NuxtLink>
-          <NuxtLink to="/contact" class="text-xs text-dimmed hover:text-muted">
-            Contact
           </NuxtLink>
         </nav>
       </div>

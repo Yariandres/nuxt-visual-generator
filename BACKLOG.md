@@ -914,8 +914,14 @@ with the client. Independent of the Milestone 10 engine work; several are UI-onl
 ### BL-047: Remove Blog and Contact Pages
 
 - Priority: `P1`
-- Status: `Todo`
+- Status: `Done`
 - Goal: Drop the `/blog` and `/contact` pages from the app — the client handles those on a separate WordPress site (SEO there). Remove the routes and any nav links. (@00:00)
+- Delivered: deleted `app/pages/blog.vue` and `app/pages/contact.vue`; removed the
+  header nav links (Blog + Contact) and the footer Contact link from
+  `app/layouts/public.vue`; dropped `/blog` and `/contact` from the Supabase
+  `redirectOptions.exclude` list in `nuxt.config.ts`. No code references remain;
+  production build is clean. (Stale hits to those URLs now behave like any other
+  removed route — unauth → `/login`, same as the app's existing route protection.)
 
 ### BL-048: Preset Search
 
