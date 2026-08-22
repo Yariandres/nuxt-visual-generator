@@ -740,8 +740,16 @@ with the image model user-selectable (see Milestone 11).
 ### BL-040: Define v2 Preset Schema and Validation
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `2-3 days`
+- Delivered: v2 zod schema + `validatePresetV2`, `detectPresetFormat`, and a
+  format-discriminating `validateAnyPreset` in `shared/schemas/preset.ts`
+  (V1 `validatePreset` untouched). `coreFiles`→`engineBlocks` normalized on load;
+  `computed` keys whitelisted to `{colorBlock}` (with `colorPalette`/`includeColorBlock`
+  dependency checks); tokens cross-validated against `tokenMap`/blocks/fields/params.
+  All three client `.rdt` files validate; covered by `tests/preset-v2.test.ts`.
+  Note: the loader/generate/expand pipeline is still V1-typed — wire it onto
+  `validateAnyPreset` at BL-041/BL-045.
 - Goal: Validate the client format (`id`, `label`, `version`, `engineBlocks`/`coreFiles`, `dynamicFields[]`, `specialParams[]`, `promptAssembly.template`, `tokenMap`) with a format discriminator so V1 and v2 can be told apart.
 - Tasks:
   - Add a v2 zod schema alongside the V1 schema; branch on a format/`schemaVersion` marker.
