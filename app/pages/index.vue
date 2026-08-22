@@ -1,39 +1,13 @@
 <script setup lang="ts">
+// Marketing now lives on the client's WordPress site, so the app root is just
+// the login page. Redirect every visitor to /login, which itself forwards an
+// already-authenticated user on to /generate. Runs on SSR (inbound WordPress
+// links) and client-side navigation alike.
 definePageMeta({
-  layout: 'public',
+  middleware: () => navigateTo('/login', { redirectCode: 302 }),
 })
-const user = useSupabaseUser()
 </script>
 
 <template>
-  <div class="mx-auto max-w-4xl px-6 py-24 text-center">
-    <h1 class="text-4xl font-bold tracking-tight text-highlighted sm:text-5xl">
-      Production-quality visuals through structured AI workflows
-    </h1>
-    <p class="mx-auto mt-6 max-w-2xl text-lg text-muted">
-      Onward gives creative teams repeatable, controlled generation using preset-based workflows instead of raw prompting. Consistent outputs, every time.
-    </p>
-    <div class="mt-10 flex items-center justify-center gap-4">
-      <UButton
-        v-if="user"
-        label="Open App"
-        to="/generate"
-        size="lg"
-      />
-      <template v-else>
-        <UButton
-          label="Get started"
-          to="/signup"
-          size="lg"
-        />
-        <UButton
-          label="Sign in"
-          to="/login"
-          color="neutral"
-          variant="outline"
-          size="lg"
-        />
-      </template>
-    </div>
-  </div>
+  <div />
 </template>
