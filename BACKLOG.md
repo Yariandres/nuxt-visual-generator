@@ -726,10 +726,16 @@ Implementation backlog for Onward, the preset-based AI visual generation app des
 ## Milestone 10: Engine v2 — Client `.rdt` Format
 
 Adopt the richer preset format used by the three client-supplied `.rdt` files. Full spec,
-gap analysis, and open questions live in `docs/engine-v2-plan.md`. The client format is a
-token-resolution engine (`tokenMap` + locked blocks + params-with-prompt-fragments +
-per-field AI expansion) that V1's `template`/`fields[]` schema cannot represent. Direction
+gap analysis, and the resolved client answers live in `docs/engine-v2-plan.md`. The client
+format is a token-resolution engine (`tokenMap` + locked blocks + params-with-prompt-fragments
++ per-field AI expansion) that V1's `template`/`fields[]` schema cannot represent. Direction
 confirmed: upgrade the engine to their format rather than converting files down to V1.
+
+**Spec is complete** (client meeting 2026-08-22 + email). Decisions baked into the items
+below: computed keys = `{colorBlock}` only (whitelisted); param types = `select` + `checkbox`
+only (extensible later); `engineBlocks` is canonical with `coreFiles` as an alias; `ratio`
+sets the real output aspect ratio *and* injects prompt text; `gpt-4.1-mini` for text expand
+with the image model user-selectable (see Milestone 11).
 
 ### BL-040: Define v2 Preset Schema and Validation
 
@@ -739,12 +745,13 @@ confirmed: upgrade the engine to their format rather than converting files down 
 - Goal: Validate the client format (`id`, `label`, `version`, `engineBlocks`/`coreFiles`, `dynamicFields[]`, `specialParams[]`, `promptAssembly.template`, `tokenMap`) with a format discriminator so V1 and v2 can be told apart.
 - Tasks:
   - Add a v2 zod schema alongside the V1 schema; branch on a format/`schemaVersion` marker.
-  - Validate `dynamicFields` (`textarea`, `aiExpansion`), `specialParams` (`select` with per-option `prompt`, `checkbox` with true/false branches).
-  - Cross-validate: every `{{TOKEN}}` in `promptAssembly.template` has a `tokenMap` entry; every `tokenMap` `field`/`param`/`core`/`engine` key exists; `computed` keys are whitelisted.
+  - Validate `dynamicFields` (`textarea`, `aiExpansion`), `specialParams` — **only `select` (options with per-option `prompt`) and `checkbox` (true/false branches) for v2**; leave the union open for future types but don't implement them.
+  - Normalize `coreFiles` → `engineBlocks` on load (accept both; `engineBlocks` is canonical).
+  - Cross-validate: every `{{TOKEN}}` in `promptAssembly.template` has a `tokenMap` entry; every `tokenMap` `field`/`param`/`core`/`engine` key exists; `computed` keys are **whitelisted to `{colorBlock}`** (unknown computed key = validation error).
   - Keep the safe-slug id rule and filename/id match.
 - Acceptance criteria:
   - The three client presets validate (after the `foto-*` id/filename fix).
-  - Invalid token/field/param references fail with actionable errors.
+  - Invalid token/field/param references, and any non-whitelisted `computed` key, fail with actionable errors.
 - Dependencies: BL-010.
 
 ### BL-041: Implement tokenMap Prompt-Assembly Engine
@@ -755,7 +762,7 @@ confirmed: upgrade the engine to their format rather than converting files down 
 - Goal: Resolve `promptAssembly.template` via `tokenMap` into the final prompt.
 - Tasks:
   - Resolve `core`/`engine` → locked block strings; `field` → input value or `fallback`; `param` → selected option/checkbox `prompt` fragment; `computed` → per-key handlers.
-  - Implement observed computed key `colorBlock` (pending client confirmation of full logic).
+  - Implement the `colorBlock` computed key (the only one): when the `includeColorBlock` checkbox is on, emit the color-palette section built from the `colorPalette` field; otherwise emit nothing.
   - Detect unresolved tokens; preserve the "exact final prompt is persisted" contract.
 - Acceptance criteria:
   - Given fields + params, assembly produces the expected prompt for each client preset.
@@ -769,7 +776,7 @@ confirmed: upgrade the engine to their format rather than converting files down 
 - Estimate: `1.5-2 days`
 - Goal: Render and manage `specialParams` (the Parameters panel) whose selections inject prompt fragments.
 - Tasks:
-  - `select` params (options with `value`/`label`/`prompt`) and `checkbox` params (true/false prompt branches) with defaults.
+  - `select` params (options with `value`/`label`/`prompt`) and `checkbox` params (true/false prompt branches) with defaults. **Only these two types in v2** — keep the component switch open for future slider/multi-select but don't build them.
   - Track param selection state and feed it to assembly and generate.
 - Acceptance criteria:
   - Params render from the preset, apply defaults, and change the assembled prompt.
@@ -799,8 +806,10 @@ confirmed: upgrade the engine to their format rather than converting files down 
 - Tasks:
   - Extend `/api/generate` and `/api/expand` request schemas with params.
   - Pass fields + params into the v2 assembler; keep validation server-side.
+  - **Pass the selected `ratio` param to the image provider as the output aspect ratio** (not prompt-only) so the generated image's real dimensions match the chosen frame.
 - Acceptance criteria:
   - Generate/expand work end-to-end with a v2 preset.
+  - Choosing a ratio (e.g. `9:16`) produces an image at that aspect ratio, and its composition prompt fragment is present.
 - Dependencies: BL-041, BL-042, BL-043.
 
 ### BL-045: Load the Client Presets
@@ -810,7 +819,7 @@ confirmed: upgrade the engine to their format rather than converting files down 
 - Estimate: `0.5 day`
 - Goal: Get the three client presets loading in the app.
 - Tasks:
-  - Fix `foto-lifestyle-from-set` id/filename mismatch.
+  - Rename `foto-lifestyle-from-set.rdt` → `lifestyle_from_set_engine.rdt` so the filename matches its canonical underscore `id` (client confirmed this is naming-only).
   - Move the files into `engines/` (or the DB per BL-039); port or retire `visual_scene_v1`.
 - Acceptance criteria:
   - All three presets appear and load in `/generate`.
@@ -829,6 +838,66 @@ confirmed: upgrade the engine to their format rather than converting files down 
 - Acceptance criteria:
   - v2 assembly and validation have success/failure coverage.
 - Dependencies: BL-040 through BL-044.
+
+## Milestone 11: Client Call — Feature & UI Intake
+
+Captured from the 2026-08-22 client call (transcript `~/Desktop/client-meeting-transcript.srt`).
+These are **intake items to refine before building** — scope/acceptance still to be tightened
+with the client. Independent of the Milestone 10 engine work; several are UI-only.
+
+### BL-047: Remove Blog and Contact Pages
+
+- Priority: `P1`
+- Status: `Todo`
+- Goal: Drop the `/blog` and `/contact` pages from the app — the client handles those on a separate WordPress site (SEO there). Remove the routes and any nav links. (@00:00)
+
+### BL-048: Preset Search
+
+- Priority: `P2`
+- Status: `Todo`
+- Goal: Add a search bar over the preset list/dropdown so a growing preset set stays navigable. (@08:17)
+
+### BL-049: Limit Image Upload to 3 per Generation
+
+- Priority: `P1`
+- Status: `Todo`
+- Goal: Cap user image uploads at a maximum of three per generation, with clear UI feedback at the limit. (@06:14)
+
+### BL-050: Categorize Uploaded Images by Subject
+
+- Priority: `P2`
+- Status: `Todo`
+- Goal: Group a user's images by subject/type (e.g. bottles, lamps) so they're easy to find. Client was unsure this is needed ("maybe we don't need that feature") — **confirm before building.** (@06:28–07:22)
+
+### BL-051: Project Tabs
+
+- Priority: `P2`
+- Status: `Todo`
+- Goal: Let users keep multiple projects open as tabs and switch between them. (@09:12)
+
+### BL-052: Hide the Final Prompt from Users
+
+- Priority: `P1`
+- Status: `Todo`
+- Goal: The assembled final prompt must not be shown to end users (it's the client's IP). Ensure it never renders client-side. (@12:39)
+
+### BL-053: Smooth-Edit / Unsafe-Edit Actions on Images
+
+- Priority: `P1`
+- Status: `Todo`
+- Goal: Add buttons below a generated image to run a "smooth edit" or "unsafe" edit on that specific image. Exact behavior of each to be defined. (@16:21–17:00)
+
+### BL-054: User-Selectable Image Model + Upscale
+
+- Priority: `P1`
+- Status: `Todo`
+- Goal: Let the user choose which image model to generate with (Gemini family, mapped to the provider) and offer an upscale action on a result. Ties into BL-044. (@33:10, @35:27)
+
+### BL-055: Usage-to-Credits Display
+
+- Priority: `P2`
+- Status: `Todo`
+- Goal: Turn provider token usage returned per generation into a user-facing credits/currency figure so users can see what they're spending. Builds on the existing usage tracking (BL-031/032). (@36:44–38:32)
 
 ## Suggested Build Sequence
 

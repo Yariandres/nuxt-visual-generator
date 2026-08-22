@@ -1,6 +1,6 @@
 # Engine v2 — Adopting the Client's `.rdt` Format
 
-Status: **Planning** · Owner: TBD · Created: 2026-08-18 · Updated: 2026-08-22 (3 of 6 questions answered — client meeting)
+Status: **Planning — spec complete** · Owner: TBD · Created: 2026-08-18 · Updated: 2026-08-22 (all 6 questions answered — client meeting + email)
 
 The client shipped three `.rdt` presets authored for a richer generation engine than
 Onward V1 supports. This document specifies that format, maps the gap to the current
@@ -106,32 +106,32 @@ being JSON-shape-agnostic, stays; only validation + assembly branch on format.
 - **BL-046** tests: schema, tokenMap resolution, computed blocks, param fragments, expansion context
 - **BL-039** (existing) DB-backed presets — sequence after v2 so uploads don't need a redeploy
 
-## 6. Open questions for the client
+## 6. Client answers — all resolved ✅
 
-Source: client meeting 2026-08-22 (transcript `~/Desktop/client-meeting-transcript.srt`).
-Three of six answered; timestamps cite the transcript.
-
-### Answered ✅
+Source: client meeting 2026-08-22 + email follow-up (transcript
+`~/Desktop/client-meeting-transcript.srt`). All six spec questions are answered; the client
+accepted the recommended option on the three that were open after the call.
 
 - **AI models** (@25:54–35:27) — `gpt-4.1-mini` is for the **text expand** only. For image
   generation the user **picks the model** (Gemini family — "Google Studio / Nano Banana"),
   so `model` becomes a user-facing selection mapped to the provider, plus an **upscale**
-  option. → BL-043 (expand model) + a new provider-selection concern on generate.
+  option. → BL-043 (expand model) + provider-selection on generate (see Milestone 11).
 - **`engineBlocks` vs `coreFiles`** (@28:28–29:28) — same concept; **standardize on
-  `engineBlocks`**. The v2 loader should accept `coreFiles` as an alias and normalize it.
+  `engineBlocks`**. The v2 loader accepts `coreFiles` as an alias and normalizes it. → BL-040.
 - **`foto-lifestyle-from-set.rdt`** (@29:48–30:37) — purely a naming fix. Ids allow only
   letters/numbers/underscores, so **rename the file** to match its underscore `id`
   (`lifestyle_from_set_engine`); the internal id is canonical. → BL-045.
-
-### Still open ⏳ (client rewatching the recording)
-
-- **Computed keys** — full list and exact logic (only `colorBlock` seen). On the call the
-  detail was not recovered ("it's on our chat if you go up… I don't know", @18:22–20:41);
-  the answer is expected from the client chat / a rewatch.
-- **Param types** — is the set limited to `select` + `checkbox`, or also sliders /
-  multi-select? Asked @27:31 but not explicitly confirmed on the recording.
-- **Ratio → output** — does `specialParams.ratio` only inject prompt text, or also set the
-  image's actual output size? Asked @30:44 but the answer was inconclusive on the recording.
+- **Computed keys** — resolved via email (recommended option accepted): **`colorBlock` is the
+  only computed key.** Logic: when the `includeColorBlock` checkbox is on, insert the
+  color-palette section built from the `colorPalette` field; otherwise omit it. Keep computed
+  keys **whitelisted** so an unknown `computed` key fails validation. → BL-040, BL-041.
+- **Param types** — resolved via email: **`select` + `checkbox` only** for v2 (covers all
+  three files). Build the params layer so sliders / multi-select can be added later without
+  rework, but ship neither yet. → BL-040, BL-042.
+- **Ratio → output** — resolved via email: the `ratio` param **both** injects its composition
+  prompt fragment **and sets the image's real output aspect ratio** sent to the provider. So
+  generate must pass the selected ratio through as an output setting, not prompt-only.
+  → BL-041, BL-044.
 
 ## 7. Notes
 
