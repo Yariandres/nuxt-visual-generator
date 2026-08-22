@@ -926,8 +926,13 @@ with the client. Independent of the Milestone 10 engine work; several are UI-onl
 ### BL-048: Preset Search
 
 - Priority: `P2`
-- Status: `Todo`
+- Status: `Done`
 - Goal: Add a search bar over the preset list/dropdown so a growing preset set stays navigable. (@08:17)
+- Delivered: a search input in `app/components/features/presets/Selector.vue` that
+  filters the preset list case-insensitively by name and id, with a clear (✕)
+  button and a "No presets match …" empty state. Shown only when there is more
+  than one preset. Pure client-side filter over the already-fetched list;
+  verified live (filter, no-match, clear).
 
 ### BL-049: Limit Image Upload to 3 per Generation
 
@@ -970,6 +975,40 @@ with the client. Independent of the Milestone 10 engine work; several are UI-onl
 - Priority: `P2`
 - Status: `Todo`
 - Goal: Turn provider token usage returned per generation into a user-facing credits/currency figure so users can see what they're spending. Builds on the existing usage tracking (BL-031/032). (@36:44–38:32)
+
+## Milestone 12: WordPress Integration (Out of Scope — Future)
+
+The client runs all marketing and payments on a separate WordPress site. The app itself is
+becoming purely the authenticated product surface: as a first step the app root now redirects
+to `/login` (marketing removed from the app; landing/SEO live on WordPress). The next piece is
+provisioning: WordPress owns checkout, and on a successful payment it should tell the app to
+create the customer's account. **These items are captured for direction only — out of scope,
+not yet specced or scheduled; refine with the client before building.**
+
+### BL-056: WordPress Payment → User Provisioning Webhook
+
+- Priority: `P2`
+- Status: `Todo` (Out of scope — future)
+- Goal: Expose a server endpoint the WordPress site calls on a successful payment so the app
+  provisions the paying customer's account, without the user self-registering in the app.
+- Sketch (to refine with the client, do not build yet):
+  - Add `POST /api/webhooks/wordpress` (Nitro route) that receives the paid-order payload
+    (at least the customer email + an order/plan identifier).
+  - **Verify authenticity** — a shared secret / HMAC signature header from WordPress (e.g.
+    WooCommerce webhook signature), checked before any side effect. Reject unsigned/invalid
+    calls. Never trust the payload's claim of "paid" without the signature.
+  - **Idempotency** — WordPress may retry; key on the order id so a repeated delivery does not
+    create duplicate users or double-provision.
+  - Create the Supabase auth user server-side (service-role `admin.createUser`), then ensure the
+    `Profile` row (reuse `ensureProfile`). Decide the first-login flow: email invite / magic
+    link vs. a set-password flow (the app currently has email/password + `/password/reset`).
+  - Map the WordPress plan/order to entitlements (ties into usage→credits, BL-055) if the
+    client wants plan-based limits.
+  - Secrets in `runtimeConfig` (server-only), consistent with the AI keys convention.
+- Open questions for the client: which WordPress/commerce plugin (WooCommerce?), the exact
+  webhook payload + signing scheme, what happens on refund/cancellation (deprovision?), and how
+  the customer receives their first credential.
+- Dependencies: none hard; relates to BL-006 (auth) and BL-055 (credits/entitlements).
 
 ## Suggested Build Sequence
 
