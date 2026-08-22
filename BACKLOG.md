@@ -737,6 +737,16 @@ only (extensible later); `engineBlocks` is canonical with `coreFiles` as an alia
 sets the real output aspect ratio *and* injects prompt text; `gpt-4.1-mini` for text expand
 with the image model user-selectable (see Milestone 11).
 
+**Status: COMPLETE (2026-08-22).** BL-040–046 all `Done`. The v2 token-resolution engine
+ships end-to-end: format-discriminating schema (`validateAnyPreset`), the `assemblePromptV2`
+tokenMap resolver, the loader/persist/generate/expand pipeline branching on `AnyPreset`, the
+three client presets loaded from `engines/`, and a v2-aware `/generate` workspace (left
+Parameters panel, right dynamic-fields editor). V1 (`visual_scene_v1`) still works alongside.
+Verified in-browser (rendering + plumbing) and by 97 passing tests; live image/expand calls
+still require `GEMINI`/`OPENAI` keys. Format is detected **structurally**, never by version
+(`lifestyle_from_set_engine` is v2-shaped but `version: 1.0.0`). Remaining v2-adjacent work:
+BL-039 (DB-backed presets) and the user-selectable image model / upscale (BL-054, Milestone 11).
+
 ### BL-040: Define v2 Preset Schema and Validation
 
 - Priority: `P0`
@@ -873,7 +883,7 @@ with the image model user-selectable (see Milestone 11).
 ### BL-046: v2 Engine Tests
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `1.5-2 days`
 - Goal: Cover the v2 engine's risky logic.
 - Tasks:
@@ -882,6 +892,17 @@ with the image model user-selectable (see Milestone 11).
   - Test param prompt-fragment injection and expansion context assembly.
 - Acceptance criteria:
   - v2 assembly and validation have success/failure coverage.
+- Delivered: three suites, all driven by the real client `.rdt` files.
+  - `tests/preset-v2.test.ts` — schema validation (all 3 files valid), format
+    discrimination, `coreFiles`→`engineBlocks` normalization, and the malformed
+    cases (unknown token/field/block/param, non-whitelisted `computed` key,
+    `colorBlock` deps, duplicate keys, bad select default, `contextFields`).
+  - `tests/assemble-v2.test.ts` — tokenMap resolution for every source incl.
+    `computed` `colorBlock` (on/off) and field `fallback`, param default vs
+    override, invalid-option rejection, unknown-token guard.
+  - `tests/expand-v2.test.ts` — per-field model/instruction, `includeFieldValue`,
+    and sibling-field context assembly from `contextFields`.
+  - Full suite: 97 tests passing.
 - Dependencies: BL-040 through BL-044.
 
 ## Milestone 11: Client Call — Feature & UI Intake

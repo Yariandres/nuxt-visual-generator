@@ -52,8 +52,8 @@ V1 describes a generation as one `template` string + flat `fields[]`. The client
 source (`tokenMap`) — a locked rule block, a user field, a parameter's prompt fragment, or
 computed logic. V1's schema can't represent this, and converting the files *down* to V1 would
 throw away real capability. Decision: **upgrade the engine to the client's format.** The full
-spec + all resolved client answers are in `docs/engine-v2-plan.md`. **Spec is complete — ready
-to build; start at BL-040.**
+spec + all resolved client answers are in `docs/engine-v2-plan.md`. **DONE (2026-08-22):
+BL-040–046 all shipped — the v2 engine + workspace works end-to-end (see §5).**
 
 **B. UI/feature changes from the call** (BACKLOG Milestone 11, `BL-047`–`BL-055`). Independent
 of the engine work, mostly UI. Examples: remove blog/contact pages, cap image upload at 3,
@@ -73,13 +73,16 @@ Fixed by bundling `engines/` as a Nitro server asset and decoding the bundled by
 | V1 app (auth, presets, dynamic form, expand, generate, projects, usage, storage) | **Done** (Milestones 1–9, mostly) |
 | Production preset-loading fix (server asset + bytes decode) | **Done & deployed** |
 | Engine v2 spec + client answers | **Complete** (`docs/engine-v2-plan.md`) |
-| Engine v2 implementation (BL-040–046) | **Not started** — next up |
-| UI/feature intake (BL-047–055) | **Not started** — being scoped |
+| Engine v2 implementation (BL-040–046) | **Done** (2026-08-22) — v2 workspace end-to-end |
+| UI/feature intake (BL-047–055) | **Not started** — being scoped (BL-045 done as part of v2) |
 
-**The three client `.rdt` files are currently UNTRACKED in the repo root**
-(`package_visualization_engine.rdt`, `visualisation_design_end.rdt`,
-`foto-lifestyle-from-set.rdt`). They are inputs, not yet valid presets. They move into
-`engines/` (or the DB) once the v2 loader accepts them (BL-045).
+**Engine v2 is now implemented and working in `/generate`** (see §5). The three client
+presets live in `engines/` and load as v2; the loader validates via `validateAnyPreset`, so
+v1 and v2 coexist. `engines/` now holds: `package_visualization_engine.rdt`,
+`visualisation_design_end.rdt`, `lifestyle_from_set_engine.rdt` (renamed from the
+`foto-*` file per BL-045), and the V1 `visual_scene_v1.rdt`. Not yet committed to `main` at
+time of writing — the full v2 changeset is staged locally. Live image/text calls still need
+`GEMINI`/`OPENAI` keys; only rendering + request plumbing were verified in-browser.
 
 ---
 
@@ -91,39 +94,44 @@ Frontend lives in `app/`, backend in `server/`, shared validation in `shared/`.
 - `app/pages/generate.vue` — the main workspace page.
 - `app/composables/useWorkflowState.ts` — current preset, input values, expand/generate status.
 - `app/components/features/presets/Selector.vue` — preset picker.
-- `app/components/features/presets/FieldsForm.vue` — renders the dynamic form from a preset
-  (today: `text`/`select`; v2 adds `textarea` + a params panel).
+- `app/components/features/presets/FieldsForm.vue` — renders the V1 dynamic form
+  (`text`/`select`). v2 uses `DynamicFields.vue` (`textarea` + per-field expand) and
+  `SpecialParams.vue` (the params panel); `generate.vue` switches by format.
 - `app/api/*.ts` (`presets.ts`, `expand.ts`, `generate.ts`, `projects.ts`, `usage.ts`) —
   thin client-side `$fetch` wrappers around the server routes (typed).
 
 **Preset loading & validation**
-- `shared/schemas/preset.ts` — the Zod preset schema + `validatePreset()`. **This is where the
-  V1 vs v2 format branch goes.**
+- `shared/schemas/preset.ts` — Zod schemas for both formats. `validatePreset()` (V1),
+  `validatePresetV2()`, and `validateAnyPreset()` (the format-discriminating entry). `AnyPreset`
+  = `Preset | PresetV2`; branch with `'fields' in preset` (V1) vs else (v2).
 - `server/services/presets/loader.ts` — reads `engines/*.rdt` via Nitro storage
-  (`useStorage('assets:engines')`), validates, returns summaries/detail. Format-agnostic on
-  read; validation is in the schema. Has a test-only storage injector (see §8).
+  (`useStorage('assets:engines')`), validates via `validateAnyPreset`, returns summaries/detail
+  as `AnyPreset`. Format-agnostic on read. Has a test-only storage injector (see §8).
 - `server/services/presets/persist.ts` — `ensurePresetRecord()` upserts a preset into the DB
   (`Preset` model) keyed by `(slug, version)` so generations/projects can FK to it.
 - `server/api/presets/index.get.ts`, `server/api/presets/[id].get.ts` — list/detail routes.
 - `server/utils/validation.ts` — request-payload validation (preset id slug, field keys,
   input sanitization, `MAX_INPUT_VALUE_LENGTH`). Preset id rule: `^[A-Za-z0-9_]+$`.
 
-**Prompt assembly** (V1 today; v2 rewrite target)
-- `server/services/prompt/assemble.ts` — `FINAL_PROMPT = template-with-tokens-replaced +
-  constraint suffix`. **v2 replaces this with a `tokenMap` resolver** (core/engine/field/param/
-  computed). See BL-041.
+**Prompt assembly** (both formats live)
+- `server/services/prompt/assemble.ts` — V1 `assemblePrompt` (`FINAL_PROMPT =
+  template-with-tokens-replaced + constraint suffix`) and v2 `assemblePromptV2` (the `tokenMap`
+  resolver: core/engine/field/param/computed). `runGeneration` picks by format via
+  `assembleForPreset`.
 
 **Text expansion (OpenAI)**
 - `server/api/expand.post.ts` → `server/services/ai/expand.ts` → `server/services/ai/openai.ts`.
 - Adapter interfaces in `server/services/ai/types.ts`; error mapping in `errors.ts`.
-- v2: per-field `model` + `instruction` + `contextFields` (BL-043).
+- `expandField` branches V1/v2; v2 uses the field's per-field `model` + `instruction`,
+  `includeFieldValue`, and `contextFields` context (the expand route forwards the full
+  `inputs` map). The OpenAI adapter runs a v2 mode alongside the V1 `{{value}}` path.
 
 **Image generation (Gemini)**
 - `server/api/generate.post.ts` → `server/services/generation/run.ts` (orchestration) →
   `server/services/prompt/assemble.ts` (prompt) → `server/services/ai/gemini.ts` (image) →
   `server/services/storage/supabase.ts` (store) → `server/services/usage/record.ts` (track).
-- v2: request carries `params`; the `ratio` param must be passed to the provider as the real
-  output aspect ratio (BL-044).
+- `runGeneration` takes `AnyPreset` + `params`; for v2 the selected `ratio` param sets the real
+  output aspect ratio passed to the provider (`resolveV2AspectRatio`), not prompt-only.
 
 **Projects & history**
 - `server/api/projects/*` (create/get/update, `[id]/generations.get.ts`).
@@ -162,19 +170,30 @@ promptAssembly.template  (the master template with {{TOKENS}}),
 tokenMap         ({{TOKEN}} -> {source: core|engine|field|param|computed, key, fallback?})
 ```
 
-Build steps (BACKLOG Milestone 10), each mapped to files:
-- **BL-040** v2 schema + validation → `shared/schemas/preset.ts` (add format discriminator;
-  normalize `coreFiles`→`engineBlocks`; whitelist computed keys; cross-validate tokens).
-- **BL-041** tokenMap assembly engine → `server/services/prompt/assemble.ts`.
-- **BL-042** params model + UI (select/checkbox) → new + `app/components/features/presets/FieldsForm.vue`.
-- **BL-043** textarea + per-field AI expand → `server/services/ai/{expand,openai}.ts`, form.
-- **BL-044** generate/expand carry params; ratio→output → `server/api/{generate,expand}.post.ts`,
-  `server/utils/validation.ts`, `server/services/generation/run.ts`.
-- **BL-045** load the 3 client presets (rename foto file) → `engines/`.
-- **BL-046** tests → `tests/`.
+Build steps (BACKLOG Milestone 10) — **all DONE (2026-08-22)**, mapped to what shipped:
+- **BL-040** ✅ v2 schema + validation → `shared/schemas/preset.ts`: `validatePresetV2`,
+  `detectPresetFormat`, `validateAnyPreset`, `PresetV2` types. Format discriminator, computed
+  whitelist (`colorBlock`), `coreFiles`→`engineBlocks` normalization, token cross-validation.
+- **BL-041** ✅ tokenMap assembly → `assemblePromptV2` in `server/services/prompt/assemble.ts`
+  (core/engine/field/param/computed, blank-line collapse). V1 `assemblePrompt` untouched.
+- **BL-042** ✅ params model + UI → `app/components/features/presets/SpecialParams.vue`
+  (select/checkbox), param state in `useWorkflowState` (`params`/`setParam`/`seedParams`).
+- **BL-043** ✅ textarea + per-field AI expand → `DynamicFields.vue`; `expandField` +
+  `ai/openai.ts` branch V1/v2 (per-field model/instruction, `includeFieldValue`,
+  `contextFields` context via the `/api/expand` `inputs` map).
+- **BL-044** ✅ generate/expand carry params; ratio→output → `paramsSchema` in
+  `server/utils/validation.ts` (`fieldKeySchema` broadened to camelCase), `runGeneration`
+  takes `AnyPreset`+`params` and branches assembly; v2 `ratio` sets the real output aspect
+  ratio (`resolveV2AspectRatio`). loader/persist/projects service take `AnyPreset`.
+- **BL-045** ✅ 3 client presets in `engines/` (foto renamed to `lifestyle_from_set_engine.rdt`);
+  loader validates via `validateAnyPreset`.
+- **BL-046** ✅ tests → `tests/{preset-v2,assemble-v2,expand-v2}.test.ts` (97 passing total).
 
-Keep V1 working alongside v2 via the format discriminator; `visual_scene_v1.rdt` is a dev
-fixture that can be ported or retired.
+V1 works alongside v2 via the format discriminator; `visual_scene_v1.rdt` is kept as a V1 dev
+fixture. **Detect format structurally, never by version** — `lifestyle_from_set_engine` is
+v2-shaped but `version: 1.0.0`. On an `AnyPreset`, `'fields' in preset` ⇒ V1, else v2.
+The `/generate` layout was reorganized: left = Presets + Parameters panel; right = the dynamic
+fields editor (v2 `DynamicFields` / v1 `FieldsForm`), replacing the old mock Editor/Parameters.
 
 ---
 
@@ -223,8 +242,9 @@ From the 2026-08-22 meeting + email (details + timestamps in `docs/engine-v2-pla
   `loader.ts` exposes `_setEnginesStorageForTests()` and the test injects an `unstorage` storage.
   Anything relying on Nitro auto-imports won't run under Vitest as-is.
 - **Netlify auto-deploys `main`.** A push triggers a ~1 min build+publish. Verify prod after.
-- **The 3 client `.rdt` files are untracked in the repo root** and are a **different format** —
-  they will NOT pass V1 validation; that's expected until BL-040/045.
+- **The 3 client `.rdt` files now live in `engines/`** (moved from the repo root as part of
+  BL-045; `foto-*` renamed to `lifestyle_from_set_engine.rdt`). They are the v2 format and load
+  via `validateAnyPreset` — no longer a "won't pass validation" gotcha.
 - The meeting **transcript** (`~/Desktop/client-meeting-transcript.srt`) is outside the repo and
   won't exist on another machine — the answers you need are captured in `docs/engine-v2-plan.md`.
 
