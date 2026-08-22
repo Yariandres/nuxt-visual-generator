@@ -2,8 +2,8 @@ import { basename } from 'node:path'
 import type { Storage } from 'unstorage'
 import {
   presetSummary,
-  validatePreset,
-  type Preset,
+  validateAnyPreset,
+  type AnyPreset,
   type PresetSummary,
   type PresetValidationError,
 } from '#shared/schemas/preset'
@@ -43,7 +43,7 @@ export interface ListPresetsResult {
 }
 
 export type LoadPresetResult =
-  | { ok: true, preset: Preset }
+  | { ok: true, preset: AnyPreset }
   | { ok: false, reason: 'not_found' }
   | { ok: false, reason: 'invalid', errors: PresetValidationError[] }
   | { ok: false, reason: 'id_mismatch', expectedId: string, actualId: string }
@@ -113,7 +113,7 @@ function parseAndValidate(raw: unknown, expectedId: string): LoadPresetResult {
   } else {
     parsed = raw
   }
-  const result = validatePreset(parsed)
+  const result = validateAnyPreset(parsed)
   if (!result.ok) return { ok: false, reason: 'invalid', errors: result.errors }
   if (result.preset.id !== expectedId) {
     return {

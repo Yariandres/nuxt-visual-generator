@@ -10,16 +10,15 @@ import { validPresetInput } from './fixtures'
 
 const ROOT = resolve(__dirname, '..')
 
-// The three client-authored `.rdt` files currently live untracked in the repo
-// root (they move into engines/ at BL-045). BL-040 must validate them as-is.
+// The three client-authored `.rdt` files now live in engines/ (BL-045).
 function loadClientRdt(file: string): unknown {
-  return JSON.parse(readFileSync(resolve(ROOT, file), 'utf8'))
+  return JSON.parse(readFileSync(resolve(ROOT, 'engines', file), 'utf8'))
 }
 
 const CLIENT_FILES = [
   'package_visualization_engine.rdt',
   'visualisation_design_end.rdt',
-  'foto_lifestyle_from_set.rdt',
+  'lifestyle_from_set_engine.rdt',
 ]
 
 // A minimal well-formed v2 preset used as a base for negative cases.

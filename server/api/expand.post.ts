@@ -7,6 +7,7 @@ import { estimateOpenAIChatCostCents } from '~~/server/services/usage/pricing'
 import { recordUsageEvent } from '~~/server/services/usage/record'
 import {
   fieldKeySchema,
+  inputsSchema,
   presetIdSchema,
   parseBody,
   sanitizeText,
@@ -20,6 +21,8 @@ const bodySchema = z.object({
     .max(2000, 'value too long')
     .transform(sanitizeText)
     .pipe(z.string().min(1, 'value cannot be empty')),
+  // v2: the full field-value map, so sibling-field context can be assembled.
+  inputs: inputsSchema.optional(),
 })
 
 const EXPANSION_STATUS: Record<ExpansionErrorCode, number> = {
@@ -35,7 +38,7 @@ export default defineEventHandler(async (event) => {
   const userId = user?.sub
   if (!userId) throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
 
-  const { presetId, fieldKey, value } = await parseBody(event, bodySchema)
+  const { presetId, fieldKey, value, inputs } = await parseBody(event, bodySchema)
 
   const presetResult = await loadPreset(presetId)
   if (!presetResult.ok) {
@@ -68,7 +71,7 @@ export default defineEventHandler(async (event) => {
     model: config.openaiModel,
   })
 
-  const result = await expandField(adapter, presetResult.preset, fieldKey, value)
+  const result = await expandField(adapter, presetResult.preset, fieldKey, value, inputs)
 
   if (!result.ok) {
     if (result.error.code === 'provider_failure') {

@@ -12,9 +12,11 @@ export const presetIdSchema = z
   .max(100)
   .regex(/^[A-Za-z0-9_]+$/, 'preset id must be alphanumeric or underscore')
 
+// Accepts both V1 ALL_CAPS keys (e.g. SUBJECT) and v2 camelCase keys
+// (e.g. accentTheme) -- a superset, so no V1 key is newly rejected.
 export const fieldKeySchema = z
   .string()
-  .regex(/^[A-Z][A-Z0-9_]*$/, 'field key must match /^[A-Z][A-Z0-9_]*$/')
+  .regex(/^[a-zA-Z][a-zA-Z0-9_]*$/, 'field key must match /^[a-zA-Z][a-zA-Z0-9_]*$/')
 
 export const projectIdSchema = z.string().min(1).max(64)
 
@@ -43,6 +45,13 @@ export function sanitizeText(value: string): string {
 export const inputsSchema = z.record(
   fieldKeySchema,
   z.string().max(MAX_INPUT_VALUE_LENGTH).transform(sanitizeText),
+)
+
+// v2 specialParams selections: select params send a string value, checkbox
+// params send a boolean. Keys are param keys (same key rule as fields).
+export const paramsSchema = z.record(
+  fieldKeySchema,
+  z.union([z.string().max(MAX_INPUT_VALUE_LENGTH).transform(sanitizeText), z.boolean()]),
 )
 
 function toValidationData(error: z.ZodError) {

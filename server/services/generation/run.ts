@@ -1,13 +1,13 @@
 import { createHash } from 'node:crypto'
 import type { Prisma} from '@prisma/client';
 import { GenerationStatus } from '@prisma/client'
-import type { Preset } from '#shared/schemas/preset'
+import type { AnyPreset } from '#shared/schemas/preset'
 import type { ImageGenerationAdapter } from '~~/server/services/ai/types'
 import { ProviderError } from '~~/server/services/ai/errors'
 import type { StorageAdapter } from '~~/server/services/storage/types'
 import { StorageError } from '~~/server/services/storage/errors'
 import { extForMimeType } from '~~/server/services/storage/path'
-import { assemblePrompt } from '~~/server/services/prompt/assemble'
+import { assemblePrompt, assemblePromptV2, type ParamValues } from '~~/server/services/prompt/assemble'
 import { ensurePresetRecord } from '~~/server/services/presets/persist'
 import { ensureProfile } from '~~/server/services/profiles/ensure'
 import { estimateGeminiImageCostCents } from '~~/server/services/usage/pricing'
@@ -47,8 +47,45 @@ export interface RunGenerationDeps {
 export interface RunGenerationInput {
   userId: string
   projectId?: string | null
-  preset: Preset
+  preset: AnyPreset
   inputs: Record<string, string>
+  // v2 only: specialParams selections (select values / checkbox booleans).
+  params?: ParamValues
+}
+
+// Assemble the final prompt and resolve the output aspect ratio for either
+// format. V1 uses `template`/`fields` + the preset's `output.defaultAspectRatio`;
+// v2 resolves the tokenMap with fields + params, and the `ratio` param drives the
+// real output aspect ratio (BL-044).
+function assembleForPreset(
+  preset: AnyPreset,
+  inputs: Record<string, string>,
+  params: ParamValues,
+):
+  | { ok: true, prompt: string, aspectRatio?: string }
+  | { ok: false, errors: unknown } {
+  if ('fields' in preset) {
+    const assembly = assemblePrompt(preset, inputs)
+    return assembly.ok
+      ? { ok: true, prompt: assembly.prompt, aspectRatio: preset.output.defaultAspectRatio }
+      : { ok: false, errors: assembly.errors }
+  }
+  const assembly = assemblePromptV2(preset, inputs, params)
+  if (!assembly.ok) return { ok: false, errors: assembly.errors }
+  return { ok: true, prompt: assembly.prompt, aspectRatio: resolveV2AspectRatio(preset, params) }
+}
+
+// The selected value of a `ratio` select param (or its default) is the real
+// output aspect ratio; absent a ratio param, let the adapter decide.
+function resolveV2AspectRatio(
+  preset: Extract<AnyPreset, { dynamicFields: unknown }>,
+  params: ParamValues,
+): string | undefined {
+  const ratio = preset.specialParams.find(p => p.key === 'ratio' && p.type === 'select')
+  if (!ratio || ratio.type !== 'select') return undefined
+  const supplied = params.ratio
+  const value = typeof supplied === 'string' ? supplied : ratio.default
+  return ratio.options.some(o => o.value === value) ? value : ratio.default
 }
 
 export interface GenerateError {
@@ -77,10 +114,11 @@ export async function runGeneration(
   input: RunGenerationInput,
 ): Promise<RunGenerationResult> {
   const { preset, inputs, userId } = input
+  const params = input.params ?? {}
   const projectId = input.projectId ?? null
 
   // 1. Assemble + validate required inputs before touching the DB or provider.
-  const assembly = assemblePrompt(preset, inputs)
+  const assembly = assembleForPreset(preset, inputs, params)
   if (!assembly.ok) {
     return {
       ok: false,
@@ -92,6 +130,7 @@ export async function runGeneration(
       },
     }
   }
+  const aspectRatio = assembly.aspectRatio
 
   // 2. Ownership check for an optional project (SetNull FK would otherwise let
   // a caller attach a generation to someone else's project).
@@ -137,7 +176,7 @@ export async function runGeneration(
   try {
     const res = await deps.imageAdapter.generate({
       prompt: assembly.prompt,
-      aspectRatio: preset.output.defaultAspectRatio,
+      aspectRatio,
     })
     image = res.image
     latencyMs = res.meta.latencyMs

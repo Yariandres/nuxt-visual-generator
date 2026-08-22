@@ -25,11 +25,15 @@ describe('presetIdSchema', () => {
 })
 
 describe('fieldKeySchema', () => {
-  it('accepts an uppercase key', () => {
-    expect(fieldKeySchema.safeParse('SUBJECT').success).toBe(true)
-  })
+  // Accepts both V1 ALL_CAPS keys and v2 camelCase keys.
+  it.each(['SUBJECT', 'subject', 'accentTheme', 'includeColorBlock', 'A_B'])(
+    'accepts a valid key: %s',
+    (key) => {
+      expect(fieldKeySchema.safeParse(key).success).toBe(true)
+    },
+  )
 
-  it.each(['subject', 'A-B', '1ABC', ''])('rejects a malformed key: %s', (key) => {
+  it.each(['A-B', '1ABC', '', '_x', 'has space'])('rejects a malformed key: %s', (key) => {
     expect(fieldKeySchema.safeParse(key).success).toBe(false)
   })
 })

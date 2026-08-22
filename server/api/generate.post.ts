@@ -6,6 +6,7 @@ import { createSupabaseStorageAdapter } from '~~/server/services/storage/supabas
 import { runGeneration } from '~~/server/services/generation/run'
 import {
   inputsSchema,
+  paramsSchema,
   presetIdSchema,
   projectIdSchema,
   parseBody,
@@ -14,6 +15,7 @@ import {
 const bodySchema = z.object({
   presetId: presetIdSchema,
   inputs: inputsSchema,
+  params: paramsSchema.optional(),
   projectId: projectIdSchema.optional(),
 })
 
@@ -23,7 +25,7 @@ export default defineEventHandler(async (event) => {
   const userId = user?.sub
   if (!userId) throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
 
-  const { presetId, inputs, projectId } = await parseBody(event, bodySchema)
+  const { presetId, inputs, params, projectId } = await parseBody(event, bodySchema)
 
   const presetResult = await loadPreset(presetId)
   if (!presetResult.ok) {
@@ -47,7 +49,7 @@ export default defineEventHandler(async (event) => {
 
   const result = await runGeneration(
     { imageAdapter, storage, provider: 'gemini', model: config.geminiModel },
-    { userId, projectId, preset: presetResult.preset, inputs },
+    { userId, projectId, preset: presetResult.preset, inputs, params },
   )
 
   if (!result.ok) {

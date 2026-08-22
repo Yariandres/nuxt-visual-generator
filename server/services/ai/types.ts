@@ -12,13 +12,25 @@ export interface ProviderResponseMeta {
 // --- Text expansion (OpenAI today) ---
 
 export interface TextExpansionRequest {
-  // The field's `expand.promptTemplate` from the preset (contains "{{value}}").
-  promptTemplate: string
   // The current user input for the field.
   value: string
+  // --- V1 mode ---
+  // The field's `expand.promptTemplate` from the preset (contains "{{value}}").
+  promptTemplate?: string
   // Preset-level constraints passed through so the adapter can steer the model
   // (e.g. via a system message) to preserve them.
   constraints?: PresetConstraints
+  // --- v2 mode (per-field aiExpansion) ---
+  // A full system instruction that replaces the constraint-derived system
+  // message. When present, the adapter runs in v2 mode.
+  instruction?: string
+  // Sibling-field context assembled from `contextFields`, added to the user
+  // message.
+  contextText?: string
+  // Whether the field's own value is sent to the model.
+  includeFieldValue?: boolean
+  // Per-call model override (v2 fields choose their own expand model).
+  model?: string
 }
 
 export interface TextExpansionUsage {

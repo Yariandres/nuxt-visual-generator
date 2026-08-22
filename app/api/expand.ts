@@ -8,9 +8,10 @@ export async function expandField(
   presetId: string,
   fieldKey: string,
   value: string,
+  inputs?: Record<string, string>,
 ): Promise<ExpandResult> {
   return await $fetch<ExpandResult>('/api/expand', {
     method: 'POST',
-    body: { presetId, fieldKey, value },
+    body: { presetId, fieldKey, value, ...(inputs ? { inputs } : {}) },
   })
 }

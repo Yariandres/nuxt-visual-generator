@@ -765,8 +765,19 @@ with the image model user-selectable (see Milestone 11).
 ### BL-041: Implement tokenMap Prompt-Assembly Engine
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `2-3 days`
+- Delivered: `assemblePromptV2(preset, fields, params)` in
+  `server/services/prompt/assemble.ts` (V1 `assemblePrompt` untouched). Resolves
+  `core`/`engine`→locked blocks, `field`→value-or-`fallback`, `param`→selected
+  select-option/checkbox-branch `prompt` fragment (with server-side option
+  validation + defaults), and the whitelisted `computed` `colorBlock` (gated by
+  the `includeColorBlock` checkbox, built from the `colorPalette` field's
+  `promptBlock`). Guards unknown/unresolved tokens; collapses blank-line runs
+  left by empty resolutions for a clean, deterministic persisted prompt. All
+  three client presets assemble end-to-end; covered by `tests/assemble-v2.test.ts`.
+  Not yet wired into `runGeneration` (still calls V1 `assemblePrompt`) — that
+  swap plus passing `params` happens at BL-044.
 - Goal: Resolve `promptAssembly.template` via `tokenMap` into the final prompt.
 - Tasks:
   - Resolve `core`/`engine` → locked block strings; `field` → input value or `fallback`; `param` → selected option/checkbox `prompt` fragment; `computed` → per-key handlers.
@@ -780,8 +791,14 @@ with the image model user-selectable (see Milestone 11).
 ### BL-042: specialParams Model and UI
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `1.5-2 days`
+- Delivered: `app/components/features/presets/SpecialParams.vue` renders v2
+  `specialParams` (select with `{label,value}` options; checkbox with
+  `checkboxLabel`), applying each param's default. Param selection state lives in
+  `useWorkflowState` (`params` + `setParam`, seeded via `seedParams`) and feeds
+  generate. The Parameters panel is the left sidebar (only shown when the preset
+  has params). Component switch left open for future slider/multiselect.
 - Goal: Render and manage `specialParams` (the Parameters panel) whose selections inject prompt fragments.
 - Tasks:
   - `select` params (options with `value`/`label`/`prompt`) and `checkbox` params (true/false prompt branches) with defaults. **Only these two types in v2** — keep the component switch open for future slider/multi-select but don't build them.
@@ -793,8 +810,15 @@ with the image model user-selectable (see Milestone 11).
 ### BL-043: textarea Fields and Per-Field AI Expansion
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `2-3 days`
+- Delivered: `DynamicFields.vue` renders v2 `textarea` dynamicFields with a
+  per-field Expand gated on `aiEnabled`. Backend `expandField` branches V1/v2:
+  v2 uses the field's own `model` + `instruction`, honors `includeFieldValue`,
+  and assembles sibling-field context from `contextFields` (the `/api/expand`
+  route now forwards the full `inputs` map). The OpenAI adapter runs a v2 mode
+  (system=instruction, per-call model) alongside the untouched V1 `{{value}}`
+  path. Covered by `tests/expand-v2.test.ts`. (Live calls need OPENAI key.)
 - Goal: Support `textarea` dynamic fields and the richer `aiExpansion` contract.
 - Tasks:
   - Render `textarea` fields; gate expand on `aiEnabled`.
@@ -808,8 +832,16 @@ with the image model user-selectable (see Milestone 11).
 ### BL-044: Update generate/expand APIs for Params
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `1-1.5 days`
+- Delivered: `/api/generate` accepts a `params` map (new `paramsSchema`;
+  `fieldKeySchema` broadened to accept v2 camelCase keys as a superset of V1
+  ALL_CAPS). `runGeneration` takes `AnyPreset` + `params` and branches assembly
+  via `assembleForPreset` (V1 `assemblePrompt` / v2 `assemblePromptV2`). For v2,
+  the selected `ratio` param drives the **real output aspect ratio** passed to
+  the image provider (`resolveV2AspectRatio`), not prompt-only. loader/persist/
+  projects service all take `AnyPreset`. (Live image gen needs GEMINI key;
+  assembly + ratio resolution unit-tested.)
 - Goal: Carry `params` alongside `fields` through the API layer.
 - Tasks:
   - Extend `/api/generate` and `/api/expand` request schemas with params.
@@ -823,8 +855,13 @@ with the image model user-selectable (see Milestone 11).
 ### BL-045: Load the Client Presets
 
 - Priority: `P0`
-- Status: `Todo`
+- Status: `Done`
 - Estimate: `0.5 day`
+- Delivered: the three client `.rdt` files moved into `engines/`
+  (`foto_lifestyle_from_set.rdt` → `lifestyle_from_set_engine.rdt` to match its
+  underscore `id`). The loader now validates via `validateAnyPreset`, so v1 and
+  v2 presets both load. All four presets appear and render in `/generate`
+  (verified live). `visual_scene_v1` is kept as a V1 dev fixture (not retired).
 - Goal: Get the three client presets loading in the app.
 - Tasks:
   - Rename `foto-lifestyle-from-set.rdt` → `lifestyle_from_set_engine.rdt` so the filename matches its canonical underscore `id` (client confirmed this is naming-only).

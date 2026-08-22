@@ -11,7 +11,9 @@ definePageMeta({
 const {
   selectedPresetId,
   selectedPreset,
+  presetFormat,
   inputs,
+  params,
   visibleErrors,
   expandStatus,
   expandErrors,
@@ -29,6 +31,29 @@ const {
   setRecentOutputs,
   attemptSubmit,
 } = useWorkflowState()
+
+// Display helpers that read across both preset formats (V1 `name`/`fields`,
+// v2 `label`/`dynamicFields`).
+const displayName = computed(() => {
+  const p = selectedPreset.value
+  if (!p) return ''
+  return 'name' in p ? p.name : p.label
+})
+const fieldCount = computed(() => {
+  const p = selectedPreset.value
+  if (!p) return 0
+  return 'fields' in p ? p.fields.length : p.dynamicFields.length
+})
+// Narrowed views so each format's component gets a precisely-typed prop.
+const v1Preset = computed(() =>
+  selectedPreset.value && 'fields' in selectedPreset.value ? selectedPreset.value : null,
+)
+const v2Fields = computed(() =>
+  selectedPreset.value && 'dynamicFields' in selectedPreset.value ? selectedPreset.value.dynamicFields : [],
+)
+const specialParams = computed(() =>
+  selectedPreset.value && 'specialParams' in selectedPreset.value ? selectedPreset.value.specialParams : [],
+)
 
 const route = useRoute()
 const router = useRouter()
@@ -165,6 +190,7 @@ async function handleGenerate() {
     const { generation, url } = await generateImage(
       preset.id,
       inputs.value,
+      params.value,
       currentProjectId.value ?? undefined,
     )
     addRecentOutput({
@@ -203,7 +229,7 @@ async function handleExpand(key: string) {
 
   setExpandStatus(key, 'pending')
   try {
-    const result = await expandField(preset.id, key, value)
+    const result = await expandField(preset.id, key, value, inputs.value)
     setInput(key, result.text)
     setExpandStatus(key, 'idle')
   } catch (err) {
@@ -249,113 +275,44 @@ watch(selectedPresetId, async (id) => {
 
       <USeparator />
 
-      <!-- Input section -->
-      <section class="flex flex-col gap-2 p-3">
-        <h2 class="text-[10px] font-black tracking-wide text-dimmed uppercase">Input</h2>
-        <UiLoadingState v-if="restoring" label="Opening project…" />
-        <UiEmptyState
-          v-else-if="!selectedPresetId"
-          title="Pick a preset"
-          description="Choose a preset on the left to start configuring inputs."
-          icon="i-lucide-mouse-pointer-click"
-        />
-        <UiErrorState
-          v-else-if="presetDetailError"
-          title="Couldn't load preset"
-          :message="presetDetailError"
-        />
-        <UiLoadingState v-else-if="!selectedPreset" label="Loading preset…" />
-        <div v-else class="flex flex-col gap-3">
-          <div class="flex items-start justify-between gap-2 rounded-md border border-default bg-elevated p-3">
-            <div class="min-w-0">
-              <div class="truncate text-sm font-bold text-highlighted">{{ selectedPreset.name }}</div>
-              <div class="text-xs text-muted">
-                v{{ selectedPreset.version }} · Fields ({{ selectedPreset.fields.length }})
-                <span v-if="currentProjectId"> · Saved</span>
-              </div>
+      <!-- Preset meta + Save -->
+      <section
+        v-if="selectedPreset"
+        class="flex flex-col gap-2 p-3"
+      >
+        <h2 class="text-[10px] font-black tracking-wide text-dimmed uppercase">Preset</h2>
+        <div class="flex items-start justify-between gap-2 rounded-md border border-default bg-elevated p-3">
+          <div class="min-w-0">
+            <div class="truncate text-sm font-bold text-highlighted">{{ displayName }}</div>
+            <div class="text-xs text-muted">
+              v{{ selectedPreset.version }} · Fields ({{ fieldCount }})
+              <span v-if="currentProjectId"> · Saved</span>
             </div>
-            <UButton
-              :label="currentProjectId ? 'Update' : 'Save'"
-              icon="i-lucide-save"
-              size="xs"
-              variant="soft"
-              :loading="saving"
-              :disabled="saving || restoring"
-              @click="handleSaveProject"
-            />
           </div>
-          <FeaturesPresetsFieldsForm
-            v-model="inputs"
-            :preset="selectedPreset"
-            :errors="visibleErrors"
-            :expand-status="expandStatus"
-            :expand-errors="expandErrors"
-            @expand="handleExpand"
+          <UButton
+            :label="currentProjectId ? 'Update' : 'Save'"
+            icon="i-lucide-save"
+            size="xs"
+            variant="soft"
+            :loading="saving"
+            :disabled="saving || restoring"
+            @click="handleSaveProject"
           />
         </div>
       </section>
 
-      <USeparator />
+      <USeparator v-if="specialParams.length" />
 
-      <!-- Parameters section -->
-      <section class="flex flex-col gap-2 p-3">
+      <!-- Parameters section (v2 specialParams) -->
+      <section
+        v-if="specialParams.length"
+        class="flex flex-col gap-2 p-3"
+      >
         <h2 class="text-[10px] font-black tracking-wide text-dimmed uppercase">Parameters</h2>
-        <div class="grid grid-cols-3 gap-x-3 gap-y-4">
-          <div class="flex flex-col gap-1">
-            <label class="text-xs font-bold text-highlighted">Ratio</label>
-            <USelect
-              :items="['16:9', '4:3', '1:1', '9:16']"
-              placeholder="Select"
-              size="sm"
-              disabled
-            />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-xs font-bold text-highlighted">Hero position</label>
-            <USelect
-              :items="['Left', 'Center', 'Right']"
-              placeholder="Select"
-              size="sm"
-              disabled
-            />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-xs font-bold text-highlighted">Scale</label>
-            <USelect
-              :items="['Small', 'Medium', 'Big (60 cm)']"
-              placeholder="Select"
-              size="sm"
-              disabled
-            />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-xs font-bold text-highlighted">Scene density</label>
-            <USelect
-              :items="['Minimal', 'Balanced', 'Dense']"
-              placeholder="Select"
-              size="sm"
-              disabled
-            />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-xs font-bold text-highlighted">Camera</label>
-            <USelect
-              :items="['Random', 'Close-up', 'Wide']"
-              placeholder="Select"
-              size="sm"
-              disabled
-            />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-xs font-bold text-highlighted">6</label>
-            <USelect
-              :items="['6 Parameter']"
-              placeholder="Select"
-              size="sm"
-              disabled
-            />
-          </div>
-        </div>
+        <FeaturesPresetsSpecialParams
+          v-model="params"
+          :params="specialParams"
+        />
       </section>
 
       <!-- Generate button -->
@@ -468,49 +425,39 @@ watch(selectedPresetId, async (id) => {
 
       <USeparator />
 
-      <!-- Editor section -->
-      <section class="flex flex-col gap-3 p-3">
+      <!-- Editor: the preset's dynamic input fields -->
+      <section class="flex flex-1 flex-col gap-3 p-3">
         <h2 class="text-[10px] font-black tracking-wide text-dimmed uppercase">Editor</h2>
-
-        <!-- Mood field 1 -->
-        <div class="flex flex-col overflow-hidden rounded-md border border-default">
-          <div class="flex items-center justify-between bg-elevated px-3 py-2">
-            <span class="text-sm font-bold text-highlighted">Mood</span>
-            <UButton label="EXPAND" size="xs" disabled>
-              <template #trailing>
-                <USeparator orientation="vertical" class="h-3" />
-                <span class="text-xs">5 cr.</span>
-              </template>
-            </UButton>
-          </div>
-          <UTextarea
-            placeholder="Describe the mood..."
-            :rows="5"
-            disabled
-            class="border-0"
-            :ui="{ base: 'rounded-none border-0' }"
-          />
-        </div>
-
-        <!-- Mood field 2 -->
-        <div class="flex flex-col overflow-hidden rounded-md border border-default">
-          <div class="flex items-center justify-between bg-elevated px-3 py-2">
-            <span class="text-sm font-bold text-highlighted">Mood</span>
-            <UButton label="EXPAND" size="xs" disabled>
-              <template #trailing>
-                <USeparator orientation="vertical" class="h-3" />
-                <span class="text-xs">5 cr.</span>
-              </template>
-            </UButton>
-          </div>
-          <UTextarea
-            placeholder="Describe the mood..."
-            :rows="5"
-            disabled
-            class="border-0"
-            :ui="{ base: 'rounded-none border-0' }"
-          />
-        </div>
+        <UiLoadingState v-if="restoring" label="Opening project…" />
+        <UiEmptyState
+          v-else-if="!selectedPresetId"
+          title="Pick a preset"
+          description="Choose a preset on the left to start configuring inputs."
+          icon="i-lucide-mouse-pointer-click"
+        />
+        <UiErrorState
+          v-else-if="presetDetailError"
+          title="Couldn't load preset"
+          :message="presetDetailError"
+        />
+        <UiLoadingState v-else-if="!selectedPreset" label="Loading preset…" />
+        <FeaturesPresetsDynamicFields
+          v-else-if="presetFormat === 'v2'"
+          v-model="inputs"
+          :fields="v2Fields"
+          :expand-status="expandStatus"
+          :expand-errors="expandErrors"
+          @expand="handleExpand"
+        />
+        <FeaturesPresetsFieldsForm
+          v-else-if="v1Preset"
+          v-model="inputs"
+          :preset="v1Preset"
+          :errors="visibleErrors"
+          :expand-status="expandStatus"
+          :expand-errors="expandErrors"
+          @expand="handleExpand"
+        />
       </section>
     </aside>
   </div>

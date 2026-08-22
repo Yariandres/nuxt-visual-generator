@@ -1,5 +1,5 @@
 import type { Prisma } from '@prisma/client'
-import type { Preset } from '#shared/schemas/preset'
+import type { AnyPreset } from '#shared/schemas/preset'
 import { prisma } from '~~/server/utils/prisma'
 import { ensureProfile } from '~~/server/services/profiles/ensure'
 import { ensurePresetRecord } from '~~/server/services/presets/persist'
@@ -56,7 +56,7 @@ function toView(row: ProjectRow): ProjectView {
 
 export interface CreateProjectInput {
   userId: string
-  preset: Preset
+  preset: AnyPreset
   inputs: Record<string, string>
   name?: string
 }
